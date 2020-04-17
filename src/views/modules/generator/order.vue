@@ -65,10 +65,31 @@
       <el-table-column label="详情"
                        width="200">
         <template slot-scope="scope">
-          <div v-for="d in scope.row.list"
+          <div v-for="(d,index) in scope.row.list"
                :key="d.filmName">
-            {{d.number}}个{{d.filmName}}<el-tag :type="orderDetailStatus[d.status].type">{{orderDetailStatus[d.status].text}}</el-tag>
+            {{d.number}}个{{d.filmName}}
 
+            <el-popover placement="top-start"
+                        width="200"
+                        trigger="hover">
+              <el-tag slot="reference"
+                      :type="orderDetailStatus[d.status].type">{{orderDetailStatus[d.status].text}}</el-tag>
+
+              <template v-if="d.printUrl">
+                <br />
+                <a :href="d.printUrl +'?x-oss-process=style/h150'"
+                   target="_bank">查看效果图</a>
+              </template>
+
+              <template v-if="d.status==4 || d.status==3">
+                <br />
+                <a href="#"
+                   @click.prevent="resetPrint">重做</a>
+              </template>
+            </el-popover>
+
+            <div v-if="index<scope.row.list.length-1"
+                 class="divider"></div>
           </div>
 
         </template>

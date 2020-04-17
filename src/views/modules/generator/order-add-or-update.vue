@@ -37,13 +37,26 @@
                   placeholder="卖家留言"></el-input>
       </el-form-item>
       <el-button @click="addFilm">添加胶卷</el-button>
+      <el-upload style="display:inline-block"
+                 action="#"
+                 :on-change="uploadImgsZip"
+                 :show-file-list="false"
+                 :auto-upload="false">
+        <el-button slot="trigger"
+                   type="primary">添加胶卷包</el-button>
+
+      </el-upload>
+      <div class="divider"></div>
       <el-form :model="orderDetail"
+               class=""
                :rules="dataRule"
                :ref="'orderDetailList'+index"
                label-width="80px"
                v-for="(orderDetail,index) in orderDetailList"
                :key="'orderDetail'+index">
-        <el-form-item label="胶卷模板"
+        <i class="icon el-icon-delete"></i>
+        <el-form-item style="display:inline-block"
+                      label="胶卷模板"
                       prop="originId">
           <remoteSelect :model="orderDetail"
                         type="film"
@@ -54,16 +67,35 @@
                         @change="filmIdChange"></remoteSelect>
 
         </el-form-item>
+        <div>
+          <vuedraggable class="imgs"
+                        v-model="orderDetail.imgs">
+            <div class="img"
+                 v-for="(img,imgIndex) in orderDetail.imgs"
+                 :key="img.url">
+              <img :src="img.url +'?x-oss-process=style/200x'"
+                   :style="'transform:rotate('+90*img.angle+'deg)'"
+                   alt="">
 
-        <el-upload v-if="orderDetail.imgs.length=0"
-                   action="#"
-                   :on-change="uploadImgsZip"
-                   :show-file-list="false"
-                   :auto-upload="false">
-          <el-button slot="trigger"
-                     type="primary">上传图片包</el-button>
+              <span>
+                {{imgIndex+1}}
+                <i class="icon el-icon-caret-right"
+                   @click="setImgAngle(index,imgIndex)"
+                   title="旋转"></i>
+                <i class="icon el-icon-delete"
+                   title="删除"></i>
+              </span>
 
-        </el-upload>
+            </div>
+            <uploadImageCard slot="footer"
+                             type="button"
+                             buttonText="上传图片"
+                             :index="index"
+                             @uploadSuccess="getNewImg"></uploadImageCard>
+
+          </vuedraggable>
+        </div>
+
       </el-form>
 
       <!-- <el-upload :action="url"
@@ -86,10 +118,12 @@
 <script>
 import remoteSelect from '../../common/remoteSelect'
 import JsZip from 'jszip'
+import vuedraggable from 'vuedraggable'
+import uploadImageCard from '../../common/uploadImageCard'
 
 export default {
   components: {
-    remoteSelect
+    remoteSelect, vuedraggable, uploadImageCard
   },
   data () {
     return {
@@ -127,6 +161,18 @@ export default {
     this.url = this.$http.adornUrl(`/sys/oss/uploadZip?token=${this.$cookie.get('token')}`)
   },
   methods: {
+    getNewImg (response) {
+      console.log(response)
+      this.orderDetailList[response.index].imgs.push({
+        url: response.url,
+        number: 1
+      })
+    },
+    setImgAngle (index, imgIndex) {
+      let img = this.orderDetailList[index].imgs[imgIndex]
+      img.angle = img.angle ? img.angle + 1 : 1
+      this.$forceUpdate()
+    },
     addFilm () {
       this.orderDetailList.push({
         filmId: undefined,
@@ -179,7 +225,7 @@ export default {
         .then(({ data }) => {
           // orderDetailList
           let imgs = data.urls.map((u) => {
-            return { number: 1, url: u }
+            return { number: 1, url: u, angle: 0 }
           })
 
           this.orderDetailList.push({ imgs: imgs })
@@ -205,6 +251,7 @@ export default {
     init (id) {
       this.dataForm.id = id || 0
       this.visible = true
+      this.orderDetailList = []
       this.$nextTick(() => {
         this.$refs['dataForm'].resetFields()
 
@@ -225,7 +272,11 @@ export default {
               this.dataForm.createTime = data.order.createTime
               this.dataForm.status = data.order.status
               this.orderDetailList = data.orderDetail.map((orderDetail) => {
-                orderDetail.imgs = JSON.parse(orderDetail.imgs)
+                if (orderDetail.imgs == null) {
+                  orderDetail.imgs = []
+                } else {
+                  orderDetail.imgs = JSON.parse(orderDetail.imgs)
+                }
                 return orderDetail
               })
             }
@@ -240,18 +291,27 @@ export default {
           this.$http({
             url: this.$http.adornUrl(`/generator/order/${!this.dataForm.id ? 'save' : 'update'}`),
             method: 'post',
-            data: this.$http.adornData({
-              'id': this.dataForm.id || undefined,
-              'code': this.dataForm.code,
-              'exCode': this.dataForm.exCode,
-              'originId': this.dataForm.originId,
-              'buyerMsg': this.dataForm.buyerMsg,
-              'sellerMsg': this.dataForm.sellerMsg,
-              'orderCreateTime': this.dataForm.orderCreateTime,
-              'payTime': this.dataForm.payTime,
-              'createTime': this.dataForm.createTime,
-              'status': this.dataForm.status
-            })
+            data: this.$http.adornData(
+              {
+                'id': this.dataForm.id || undefined,
+                'code': this.dataForm.code,
+                'exCode': this.dataForm.exCode,
+                'originId': this.dataForm.originId,
+                'buyerMsg': this.dataForm.buyerMsg,
+                'sellerMsg': this.dataForm.sellerMsg,
+                'orderCreateTime': this.dataForm.orderCreateTime,
+                'payTime': this.dataForm.payTime,
+                'createTime': this.dataForm.createTime,
+                'status': this.dataForm.status,
+                'list': this.orderDetailList.map((od) => {
+                  let _od = JSON.stringify(od)
+                  let clone = JSON.parse(_od)
+                  clone.imgs = JSON.stringify(clone.imgs)
+                  return clone
+                })
+              }
+
+            )
           }).then(({ data }) => {
             if (data && data.code === 0) {
               this.$message({
@@ -273,3 +333,23 @@ export default {
   }
 }
 </script>
+<style scoped>
+.imgs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.imgs .img {
+  margin: 10px;
+  display: flex;
+  flex-direction: column;
+}
+.imgs .img span {
+  text-align: center;
+}
+.imgs .img img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+</style>

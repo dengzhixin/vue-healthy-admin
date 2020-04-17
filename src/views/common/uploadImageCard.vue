@@ -1,22 +1,26 @@
 <template>
   <div class=''>
-    <el-upload drag
+    <el-upload :drag="type=='drag'?true:false"
                :action="url"
                :before-upload="beforeUploadHandle"
                :on-success="successHandle"
                :show-file-list="false"
                style="text-align: center;">
-
-      <div class="box">
-        <img class="preImage"
-             v-if="preImage"
-             :src="preImage" />
-        <i v-else
-           class="el-icon-upload"></i>
-        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-      </div>
-      <div class="el-upload__tip"
-           slot="tip">只支持jpg、png、gif格式的图片！</div>
+      <template v-if="type=='drag'">
+        <div class="box">
+          <img class="preImage"
+               v-if="preImage"
+               :src="preImage" />
+          <i v-else
+             class="el-icon-upload"></i>
+          <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        </div>
+        <div class="el-upload__tip"
+             slot="tip">只支持jpg、png、gif格式的图片！</div>
+      </template>
+      <template v-else>
+        <el-button slot="trigger">{{buttonText}}</el-button>
+      </template>
     </el-upload>
   </div>
 </template>
@@ -32,7 +36,16 @@ export default {
     }
   },
   props: {
-    preImage: String
+    index: Number,
+    preImage: String,
+    buttonText: {
+      type: String,
+      default: '上传图片'
+    },
+    type: {
+      type: String,
+      default: 'drag'
+    }
   },
   computed: {},
   watch: {},
@@ -45,6 +58,7 @@ export default {
     },
     successHandle (response) {
       if (response && response.code === 0) {
+        response.index = this.index
         this.$emit('uploadSuccess', response)
       } else {
         this.$message.error(response.msg)

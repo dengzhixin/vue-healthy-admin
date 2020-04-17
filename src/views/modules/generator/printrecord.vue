@@ -10,7 +10,8 @@
       </el-form-item>
       <el-form-item>
         <el-button @click="getDataList()">查询</el-button>
-        <el-button type="primary">下载所有可打印文件</el-button>
+        <el-button type="primary"
+                   @click="loadPrint">下载所有可打印文件</el-button>
 
         <!-- <el-button v-if="isAuth('generator:printrecord:save')"
                    type="primary"
@@ -63,7 +64,7 @@
                        align="center"
                        label="状态">
         <template slot-scope="scope">
-          {{scope.row.status==0?'未饱和':(scope.row.status==1?'待导出':'已导出')}}
+          {{printRecordStatus[scope.row.status]}}
         </template>
       </el-table-column>
       <el-table-column prop="createTime"
@@ -112,9 +113,11 @@
 
 <script>
 import AddOrUpdate from './printrecord-add-or-update'
+import loadImages from '../../../utils/loadImages.js'
 export default {
   data () {
     return {
+      printRecordStatus: ['未饱和', '待导出', '待导出', '已导出'],
       dataForm: {
         key: ''
       },
@@ -134,6 +137,22 @@ export default {
     this.getDataList()
   },
   methods: {
+    loadPrint () {
+      this.dataListLoading = true
+
+      this.$http({
+        url: this.$http.adornUrl('/generator/printrecord/listCanPrint'),
+        method: 'get'
+      }).then(({ data }) => {
+        if (data && data.code === 0) {
+          console.log(data.list)
+          loadImages(data.list.map((record) => {
+            return record.printUrl
+          }))
+        } else {
+        }
+      })
+    },
     // 获取数据列表
     getDataList () {
       this.dataListLoading = true
