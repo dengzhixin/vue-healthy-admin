@@ -1,0 +1,127 @@
+<template>
+  <el-dialog :title="!dataForm.id ? '新增' : '修改'"
+             :close-on-click-modal="false"
+             :visible.sync="visible">
+
+    <el-form :model="dataForm"
+             :rules="dataRule"
+             ref="dataForm"
+             @keyup.enter.native="dataFormSubmit()"
+             label-width="80px">
+
+      <el-form-item style="display:inline-block"
+                    label="订单来源"
+                    prop="originId">
+        <remoteSelect v-if="visible"
+                      :model="dataForm"
+                      type="origin"
+                      fild="originId"
+                      label="origin"
+                      value="id"
+                      @change="originIdChange"></remoteSelect>
+      </el-form-item>
+      <el-upload style="display:inline-block"
+                 ref="upload"
+                 action="#"
+                 :multiple="false"
+                 :show-file-list="false"
+                 :on-change="importOrders"
+                 :auto-upload="false">
+        <el-button slot="trigger"
+                   type="primary">选择订单excel表格</el-button>
+        <sapn v-if="orders.length>0">{{orders.length}}个订单</sapn>
+      </el-upload>
+
+    </el-form>
+    <span slot="footer"
+          class="dialog-footer">
+      <el-button @click="visible = false">取消</el-button>
+      <el-button type="primary"
+                 @click="dataFormSubmit()">确定</el-button>
+    </span>
+  </el-dialog>
+</template>
+
+<script>
+import remoteSelect from '../../common/remoteSelect'
+import XLSX from 'xlsx'
+
+export default {
+  components: {
+    remoteSelect
+  },
+  data () {
+    return {
+      url: '',
+      visible: false,
+      dataForm: {
+        originId: undefined
+      },
+      orders: []
+    }
+  },
+  mounted () {
+    this.url = this.$http.adornUrl(`/sys/oss/uploadZip?token=${this.$cookie.get('token')}`)
+  },
+  methods: {
+    init () {
+      this.visible = true
+    },
+    originIdChange (value) {
+      this.dataForm.originId = value
+    },
+    importOrders (file, fileList) {
+      alert(this.dataForm.originId)
+      if (this.dataForm.originId === undefined) {
+        this.$message('请先选择订单来源')
+        return
+      }
+      this.orders = []
+      readWorkbookFromLocalFile(file.raw, (workbook) => {
+        let orders = []
+        let maxLine = 0
+        for (let sheetName in workbook.Sheets) {
+          let sheet = workbook.Sheets[sheetName]
+          let tag = sheet['!ref']
+          maxLine = tag.split(':')[1].replace(/[^\d]/g, ' ')
+          for (let i = 2; i <= maxLine; i++) {
+            try {
+              let exCode = sheet['A' + i].v
+
+              // let buyerMsg = sheet['N' + i].v === 'null' ? '' : sheet['N' + i].v
+              // let sellerMsg = sheet['Z' + i].v === `'null` ? '' : sheet['Z' + i].v.slice(1)
+              // let orderCreateTime = sheet['T' + i].v
+              // let payTime = sheet['U' + i] ? sheet['U' + i].v : ''
+              // let status = orderStatus(sheet['M' + i].v)
+              // orders.push({ exCode, buyerMsg, sellerMsg, originId: 1, orderCreateTime, payTime, status })
+              orders.push({ exCode, originId: 1 })
+            } catch (e) {
+              this.$alert('请选择淘宝订单格式的表格')
+            }
+          }
+        }
+        this.orders = orders
+        console.log(orders)
+      })
+      function readWorkbookFromLocalFile (file, callback) {
+        let reader = new FileReader()
+        reader.onload = function (e) {
+          let data = e.target.result
+          let workbook = XLSX.read(data, { type: 'binary' })
+          if (callback) callback(workbook)
+        }
+        reader.readAsBinaryString(file)
+      }
+    },
+    dataFormSubmit () {
+      this.$http({
+        url: this.$http.adornUrl('/generator/order/saveFromExcel'),
+        method: 'POST',
+        data: this.orders
+      }).then(({ data }) => {
+        this.$message(data.msg)
+      })
+    }
+  }
+}
+</script>
