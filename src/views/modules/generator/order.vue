@@ -10,20 +10,24 @@
       </el-form-item>
       <el-form-item>
         <el-button @click="getDataList()">查询</el-button>
-        <el-button v-if="isAuth('generator:order:save')"
-                   type="primary"
-                   @click="addOrUpdateHandle()">引入淘宝订单</el-button>
-        <el-button v-if="isAuth('generator:order:save')"
-                   type="primary"
-                   @click="importHandle()">批量导入淘宝订单</el-button>
 
-        <el-button v-if="isAuth('generator:order:delete')"
-                   type="danger"
-                   @click="deleteHandle()"
-                   :disabled="dataListSelections.length <= 0">批量删除</el-button>
       </el-form-item>
     </el-form>
-    {{currentCellDetail}}
+    <div>
+      <el-button v-if="isAuth('generator:order:save')"
+                 type="primary"
+                 @click="addOrUpdateHandle()">引入订单</el-button>
+      <el-button v-if="isAuth('generator:order:save')"
+                 type="primary"
+                 @click="importHandle()">批量导入订单</el-button>
+
+      <el-button v-if="isAuth('generator:order:delete')"
+                 type="danger"
+                 @click="deleteHandle()"
+                 :disabled="dataListSelections.length <= 0">批量删除
+      </el-button>
+    </div>
+    <br />
     <el-table :data="dataList"
               border
               v-loading="dataListLoading"
@@ -68,7 +72,6 @@
           <div v-for="(d,index) in scope.row.list"
                :key="d.filmName">
             {{d.number}}个{{d.filmName}}
-
             <el-popover placement="top-start"
                         width="200"
                         trigger="hover">
@@ -81,10 +84,10 @@
                    target="_bank">查看效果图</a>
               </template>
 
-              <template v-if="d.status==4 || d.status==3">
+              <template>
                 <br />
                 <a href="#"
-                   @click.prevent="resetPrint">重做</a>
+                   @click.prevent="redo(d.id)">重做</a>
               </template>
             </el-popover>
 
@@ -201,8 +204,20 @@ export default {
 
   },
   methods: {
+    redo (id) {
+      this.$http({
+        url: this.$http.adornUrl(`/generator/orderdetail/redo/${id}`),
+        method: 'put'
+      }).then(({ data }) => {
+        console.log(data)
+        this.getDataList()
+      })
+    },
+    search () {
+
+    },
     // 获取数据列表
-    getDataList () {
+    getDataList (map) {
       this.dataListLoading = true
       this.$http({
         url: this.$http.adornUrl('/generator/order/list'),

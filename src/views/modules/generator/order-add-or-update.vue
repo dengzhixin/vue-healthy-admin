@@ -36,7 +36,9 @@
         <el-input v-model="dataForm.sellerMsg"
                   placeholder="卖家留言"></el-input>
       </el-form-item>
-      <el-button @click="addFilm">添加胶卷</el-button>
+      <span>可选操作：</span>
+      <el-button style="display:inline-block"
+                 @click="addFilm">添加胶卷</el-button>
       <el-upload style="display:inline-block"
                  action="#"
                  :on-change="uploadImgsZip"
@@ -49,15 +51,16 @@
       <div class="divider"></div>
       <el-form :model="orderDetail"
                class=""
-               :rules="dataRule"
+               :rules="dataRule2"
                :ref="'orderDetailList'+index"
                label-width="80px"
                v-for="(orderDetail,index) in orderDetailList"
                :key="'orderDetail'+index">
-        <i class="icon el-icon-delete"></i>
+        <i class="icon el-icon-delete"
+           @click="deleteOrderDetail(index,orderDetail.id)"></i>
         <el-form-item style="display:inline-block"
                       label="胶卷模板"
-                      prop="originId">
+                      prop="filmId">
           <remoteSelect :model="orderDetail"
                         type="film"
                         fild="filmId"
@@ -83,7 +86,8 @@
                    @click="setImgAngle(index,imgIndex)"
                    title="旋转"></i>
                 <i class="icon el-icon-delete"
-                   title="删除"></i>
+                   title="删除"
+                   @click="deleteImg(index,imgIndex)"></i>
               </span>
 
             </div>
@@ -168,15 +172,53 @@ export default {
         number: 1
       })
     },
+    deleteImg (index, imgIndex) {
+      this.orderDetailList[index].imgs.splice(imgIndex, 1)
+      // this.$forceUpdate()
+    },
     setImgAngle (index, imgIndex) {
       let img = this.orderDetailList[index].imgs[imgIndex]
       img.angle = img.angle ? img.angle + 1 : 1
       this.$forceUpdate()
     },
     addFilm () {
-      this.orderDetailList.push({
+      this.orderDetailList.splice(0, 0, {
         filmId: undefined,
         imgs: []
+      })
+    },
+    deleteOrderDetail (index, id) {
+      let callback = () => {
+        this.$message({
+          message: '操作成功',
+          type: 'success',
+          duration: 500,
+          onClose: () => {
+            this.orderDetailList.splice(index, 1)
+          }
+        })
+      }
+
+      this.$confirm(`确定删除？删除后不能回复，请谨慎操作`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        if (id) {
+          this.$http({
+            url: this.$http.adornUrl('/generator/orderdetail/delete'),
+            method: 'post',
+            data: this.$http.adornData([id], false)
+          }).then(({ data }) => {
+            if (data && data.code === 0) {
+              callback()
+            } else {
+              this.$message.error(data.msg)
+            }
+          })
+        } else {
+          callback()
+        }
       })
     },
     uploadImgsZip (zip) {
@@ -286,6 +328,16 @@ export default {
     },
     // 表单提交
     dataFormSubmit () {
+      let valid = 0
+      this.orderDetailList.forEach((od) => {
+        if (od.filmId === undefined || od.imgs.length === 0) {
+          valid += 1
+        }
+      })
+      if (valid > 0) {
+        this.$message('制作模板或图片不能为空')
+        return
+      }
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           this.$http({

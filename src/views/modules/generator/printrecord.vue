@@ -81,7 +81,7 @@
           {{scope.row.outTime?scope.row.outTime:'暂无导出'}}
         </template>
       </el-table-column>
-      <!-- <el-table-column fixed="right"
+      <el-table-column fixed="right"
                        header-align="center"
                        align="center"
                        width="150"
@@ -89,12 +89,12 @@
         <template slot-scope="scope">
           <el-button type="text"
                      size="small"
-                     @click="addOrUpdateHandle(scope.row.id)">修改</el-button>
-          <el-button type="text"
+                     @click="downloadHandle(scope.row)">下载</el-button>
+          <!-- <el-button type="text"
                      size="small"
-                     @click="deleteHandle(scope.row.id)">删除</el-button>
+                     @click="deleteHandle(scope.row.id)">删除</el-button> -->
         </template>
-      </el-table-column> -->
+      </el-table-column>
     </el-table>
     <el-pagination @size-change="sizeChangeHandle"
                    @current-change="currentChangeHandle"
@@ -114,6 +114,9 @@
 <script>
 import AddOrUpdate from './printrecord-add-or-update'
 import loadImages from '../../../utils/loadImages.js'
+import {
+  saveAs
+} from 'file-saver'
 export default {
   data () {
     return {
@@ -149,6 +152,7 @@ export default {
           loadImages(data.list.map((record) => {
             return record.printUrl
           }))
+          this.dataListLoading = false
         } else {
         }
       })
@@ -226,6 +230,10 @@ export default {
           }
         })
       })
+    },
+    // 下载
+    downloadHandle (row) {
+      saveAs(row.printUrl, '流水号' + row.id + '.png')
     }
   }
 }

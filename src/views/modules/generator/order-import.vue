@@ -4,7 +4,6 @@
              :visible.sync="visible">
 
     <el-form :model="dataForm"
-             :rules="dataRule"
              ref="dataForm"
              @keyup.enter.native="dataFormSubmit()"
              label-width="80px">
@@ -29,7 +28,7 @@
                  :auto-upload="false">
         <el-button slot="trigger"
                    type="primary">选择订单excel表格</el-button>
-        <sapn v-if="orders.length>0">{{orders.length}}个订单</sapn>
+        <span v-if="orders.length>0">{{orders.length}}个订单</span>
       </el-upload>
 
     </el-form>
@@ -71,7 +70,6 @@ export default {
       this.dataForm.originId = value
     },
     importOrders (file, fileList) {
-      alert(this.dataForm.originId)
       if (this.dataForm.originId === undefined) {
         this.$message('请先选择订单来源')
         return
@@ -107,8 +105,16 @@ export default {
         let reader = new FileReader()
         reader.onload = function (e) {
           let data = e.target.result
-          let workbook = XLSX.read(data, { type: 'binary' })
-          if (callback) callback(workbook)
+          let workbook
+          try {
+            workbook = XLSX.read(data, { type: 'binary' })
+            if (callback) callback(workbook)
+          } catch (e) {
+            // let password = prompt('输入密码')
+            // alert(password)
+            // workbook = XLSX.read(data, { type: 'binary', password })
+            this.$alert('未知错误')
+          }
         }
         reader.readAsBinaryString(file)
       }
@@ -120,6 +126,7 @@ export default {
         data: this.orders
       }).then(({ data }) => {
         this.$message(data.msg)
+        this.$emit('refreshDataList')
       })
     }
   }
