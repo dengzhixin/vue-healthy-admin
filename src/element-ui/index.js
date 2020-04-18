@@ -76,9 +76,11 @@ import {
   MessageBox,
   Message,
   Notification,
-  Divider
+  Divider,
+  Link
 } from 'element-ui'
 
+Vue.use(Link)
 Vue.use(Pagination)
 Vue.use(Dialog)
 Vue.use(Autocomplete)

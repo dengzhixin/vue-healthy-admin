@@ -51,7 +51,6 @@
       <div class="divider"></div>
       <el-form :model="orderDetail"
                class=""
-               :rules="dataRule2"
                :ref="'orderDetailList'+index"
                label-width="80px"
                v-for="(orderDetail,index) in orderDetailList"

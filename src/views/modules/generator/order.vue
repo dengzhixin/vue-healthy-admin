@@ -3,14 +3,27 @@
     <el-form :inline="true"
              :model="dataForm"
              @keyup.enter.native="getDataList()">
-      <el-form-item>
-        <el-input v-model="dataForm.key"
-                  placeholder="参数名"
+      <el-form-item label="内部订单号：">
+        <el-input v-model="dataForm.code"
                   clearable></el-input>
       </el-form-item>
+      <el-form-item label="外部订单号：">
+        <el-input v-model="dataForm.excode"
+                  clearable></el-input>
+      </el-form-item>
+      <el-form-item label="状态：">
+        <el-select v-model="dataForm.odStatus"
+                   placeholder="请选择">
+          <el-option v-for="item in orderDetailStatus"
+                     :key="item.value"
+                     :label="item.text"
+                     :value="item.value">
+          </el-option>
+        </el-select>
+      </el-form-item>
+
       <el-form-item>
         <el-button @click="getDataList()">查询</el-button>
-
       </el-form-item>
     </el-form>
     <div>
@@ -75,19 +88,24 @@
             <el-popover placement="top-start"
                         width="200"
                         trigger="hover">
-              <el-tag slot="reference"
-                      :type="orderDetailStatus[d.status].type">{{orderDetailStatus[d.status].text}}</el-tag>
 
+              <el-tag v-if="scope.row.status!=1"
+                      slot="reference"
+                      :type="orderDetailStatus[d.status].type">{{orderDetailStatus[d.status].text}}</el-tag>
+              <el-tag v-else
+                      slot="reference"
+                      :type="orderStatus[scope.row.status].type">{{orderStatus[scope.row.status].text}}</el-tag>
               <template v-if="d.printUrl">
                 <br />
-                <a :href="d.printUrl +'?x-oss-process=style/h150'"
-                   target="_bank">查看效果图</a>
+                <el-link icon="el-icon-picture"
+                         :href="d.printUrl +'?x-oss-process=style/h150'"
+                         target="_bank">查看效果图</el-link>
               </template>
 
               <template>
                 <br />
                 <a href="#"
-                   @click.prevent="redo(d.id)">重做</a>
+                   @click.prevent="redo(scope,index,d.id)"><i class="el-icon-refresh"></i>重做</a>
               </template>
             </el-popover>
 
@@ -180,7 +198,9 @@ export default {
       },
       orderDetailStatus: orderDetailStatus,
       dataForm: {
-        key: ''
+        code: '',
+        excode: '',
+        odStatus: ''
       },
       currentCellDetail: undefined,
       dataList: [],
@@ -204,7 +224,8 @@ export default {
 
   },
   methods: {
-    redo (id) {
+    redo (row, index, id) {
+      this.dataListLoading = true
       this.$http({
         url: this.$http.adornUrl(`/generator/orderdetail/redo/${id}`),
         method: 'put'
@@ -225,7 +246,9 @@ export default {
         params: this.$http.adornParams({
           'page': this.pageIndex,
           'limit': this.pageSize,
-          'key': this.dataForm.key
+          'code': this.dataForm.code,
+          'excode': this.dataForm.excode,
+          'odStatus': this.dataForm.odStatus
         })
       }).then(({ data }) => {
         if (data && data.code === 0) {
