@@ -32,12 +32,18 @@
       <el-table-column prop="id"
                        header-align="center"
                        align="center"
-                       label="id">
+                       label="id"
+                       width="40">
       </el-table-column>
-      <el-table-column prop="film_ids"
+      <el-table-column prop="filmIds"
                        header-align="center"
                        align="center"
                        label="适用胶卷">
+        <template slot-scope="scope">
+          <el-tag type="info"
+                  v-for="film in scope.row.films"
+                  :key="film.name">{{film.name}}</el-tag>
+        </template>
       </el-table-column>
 
       <el-table-column prop="bgUrl"
@@ -53,12 +59,21 @@
       <el-table-column prop="number"
                        header-align="center"
                        align="center"
-                       label="行数">
+                       label="行数"
+                       width="60">
       </el-table-column>
       <el-table-column prop="xys"
                        header-align="center"
                        align="center"
                        label="坐标集">
+        <template slot-scope="scope">
+          <!-- {{scope.row.xys}} -->
+          <el-tag type="info"
+                  v-for="(xy,index) in toJson(scope.row.xys)"
+                  :key="index">x:{{xy.x}},y:{{xy.y}}
+          </el-tag>
+
+        </template>
       </el-table-column>
       <el-table-column prop="maxWidth"
                        header-align="center"
@@ -73,10 +88,14 @@
         <template slot-scope="scope">
           <el-button type="text"
                      size="small"
+                     @click="updateStatusHandle(scope.row)">{{scope.row.status==0?'启用':'禁用'}}</el-button>
+          <el-button type="text"
+                     size="small"
                      @click="addOrUpdateHandle(scope.row.id)">修改</el-button>
           <el-button type="text"
                      size="small"
                      @click="deleteHandle(scope.row.id)">删除</el-button>
+
         </template>
       </el-table-column>
     </el-table>
@@ -112,6 +131,13 @@ export default {
       addOrUpdateVisible: false
     }
   },
+  computed: {
+    toJson: (string) => {
+      return function (string) {
+        return JSON.parse(string)
+      }
+    }
+  },
   components: {
     AddOrUpdate
   },
@@ -119,6 +145,29 @@ export default {
     this.getDataList()
   },
   methods: {
+    updateStatusHandle (row) {
+      this.$http({
+        url: this.$http.adornUrl(`/generator/paper/update`),
+        method: 'post',
+        data: this.$http.adornData({
+          'id': row.id || undefined,
+          'status': row.status === 0 ? 1 : 0
+        })
+      }).then(({ data }) => {
+        if (data && data.code === 0) {
+          this.$message({
+            message: '操作成功',
+            type: 'success',
+            duration: 500,
+            onClose: () => {
+              this.getDataList()
+            }
+          })
+        } else {
+          this.$message.error(data.msg)
+        }
+      })
+    },
     // 获取数据列表
     getDataList () {
       this.dataListLoading = true

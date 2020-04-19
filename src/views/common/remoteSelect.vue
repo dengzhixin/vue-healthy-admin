@@ -1,6 +1,7 @@
 <template>
   <div class=''>
     <el-select v-model="model[fild]"
+               :multiple="multiple"
                filterable
                remote
                placeholder="选择或输入关键字"
@@ -24,7 +25,11 @@ export default {
     type: String,
     label: String,
     value: String,
-    index: Number
+    index: Number,
+    multiple: {
+      type: Boolean,
+      default: false
+    }
   },
   data () {
     return {

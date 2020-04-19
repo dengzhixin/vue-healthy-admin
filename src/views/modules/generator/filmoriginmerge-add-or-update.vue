@@ -14,7 +14,8 @@
                       fild="originId"
                       label="origin"
                       value="id"
-                      @change="originIdChange"></remoteSelect>
+                      @change="originIdChange">
+        </remoteSelect>
       </el-form-item>
       <el-form-item label="胶卷标识"
                     prop="marker">

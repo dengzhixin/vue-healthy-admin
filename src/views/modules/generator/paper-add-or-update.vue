@@ -17,6 +17,18 @@
         <el-input v-model="dataForm.number"
                   placeholder="行数"></el-input>
       </el-form-item>
+      <el-form-item label="适用胶卷"
+                    prop="filmIds">
+        <remoteSelect :model="dataForm"
+                      type="film"
+                      fild="filmIds"
+                      label="name"
+                      value="id"
+                      :multiple="true"
+                      @change="filmIdsChange">
+        </remoteSelect>
+      </el-form-item>
+
       <el-form-item label="坐标集"
                     prop="xys">
         <el-input v-model="dataForm.xys"
@@ -39,10 +51,11 @@
 
 <script>
 import uploadImageCard from '../../common/uploadImageCard'
+import remoteSelect from '../../common/remoteSelect'
 
 export default {
   components: {
-    uploadImageCard
+    uploadImageCard, remoteSelect
   },
   data () {
     return {
@@ -71,6 +84,9 @@ export default {
     }
   },
   methods: {
+    filmIdsChange (val) {
+      this.dataForm.filmIds = val
+    },
     uploadSuccess (response) {
       this.dataForm.bgUrl = response.url
     },
@@ -90,6 +106,8 @@ export default {
               this.dataForm.number = data.paper.number
               this.dataForm.xys = data.paper.xys
               this.dataForm.maxWidth = data.paper.maxWidth
+              console.log(data.paper.filmIds.split(','))
+              this.dataForm.filmIds = data.paper.filmIds.split(',').map(id => parseInt(id))
             }
           })
         }
@@ -107,7 +125,8 @@ export default {
               'bgUrl': this.dataForm.bgUrl,
               'number': this.dataForm.number,
               'xys': this.dataForm.xys,
-              'maxWidth': this.dataForm.maxWidth
+              'maxWidth': this.dataForm.maxWidth,
+              'filmIds': this.dataForm.filmIds.join(',')
             })
           }).then(({ data }) => {
             if (data && data.code === 0) {
