@@ -32,7 +32,12 @@
       <el-table-column prop="id"
                        header-align="center"
                        align="center"
-                       label="">
+                       label="id">
+      </el-table-column>
+      <el-table-column prop="film_ids"
+                       header-align="center"
+                       align="center"
+                       label="适用胶卷">
       </el-table-column>
 
       <el-table-column prop="bgUrl"

@@ -2,6 +2,8 @@
   <div class="mod-config">
     <el-form :inline="true"
              :model="dataForm"
+             label-position="left"
+             label-width="100px"
              @keyup.enter.native="getDataList()">
       <el-form-item label="内部订单号：">
         <el-input v-model="dataForm.code"
@@ -20,6 +22,15 @@
                      :value="item.value">
           </el-option>
         </el-select>
+      </el-form-item>
+      <el-form-item label="下单时间：">
+        <el-date-picker v-model="dataForm.time"
+                        type="datetimerange"
+                        range-separator="至"
+                        start-placeholder="开始日期"
+                        end-placeholder="结束日期"
+                        align="right">
+        </el-date-picker>
       </el-form-item>
 
       <el-form-item>
@@ -186,6 +197,7 @@ import AddOrUpdate from './order-add-or-update'
 import OrderImport from './order-import.vue'
 import orderDetailStatus from './orderDetailStatus.js'
 export default {
+  name: 'order',
   data () {
     return {
       orderStatus: {
@@ -200,7 +212,8 @@ export default {
       dataForm: {
         code: '',
         excode: '',
-        odStatus: ''
+        odStatus: '',
+        time: ['', '']
       },
       currentCellDetail: undefined,
       dataList: [],
@@ -240,6 +253,8 @@ export default {
     // 获取数据列表
     getDataList (map) {
       this.dataListLoading = true
+      window.time = this.dataForm.time
+      console.log(this.dataForm.time)
       this.$http({
         url: this.$http.adornUrl('/generator/order/list'),
         method: 'get',
@@ -248,7 +263,9 @@ export default {
           'limit': this.pageSize,
           'code': this.dataForm.code,
           'excode': this.dataForm.excode,
-          'odStatus': this.dataForm.odStatus
+          'odStatus': this.dataForm.odStatus,
+          'timeStart': this.dataForm.time[0] === '' ? '' : this.dataForm.time[0].Format('yyyy-MM-dd hh:mm:ss'),
+          'timeEnd': this.dataForm.time[1] === '' ? '' : this.dataForm.time[1].Format('yyyy-MM-dd hh:mm:ss')
         })
       }).then(({ data }) => {
         if (data && data.code === 0) {

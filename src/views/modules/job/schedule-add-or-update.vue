@@ -17,25 +17,21 @@
         <el-input v-model="dataForm.beanName"
                   placeholder="spring bean名称, 如: testTask"></el-input>
       </el-form-item>
-      <el-form-item label="参数"
+      <!-- <el-form-item label="参数"
                     prop="params">
         <el-input v-model="dataForm.params"
                   placeholder="参数"></el-input>
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item label="cron表达式"
                     prop="cronExpression">
-        <el-input v-model="dataForm.cronExpression"
-                  placeholder="如: 0 0 12 * * ?"></el-input>
-
-        <!-- <el-popover v-model="cronPopover">
-          <vueCron @change="changeCron"
-                   @close="cronPopover=false"
-                   i18n="en"></vueCron>
+        <el-popover v-model="cronPopoverShow">
+          <cron @change="changeCron"
+                @close="cronPopoverShow=false"></cron>
           <el-input slot="reference"
-                    @click="cronPopover=true"
+                    @click="cronPopoverShow=true"
                     v-model="dataForm.cronExpression"
                     placeholder="请输入定时策略"></el-input>
-        </el-popover> -->
+        </el-popover>
       </el-form-item>
 
     </el-form>
@@ -49,12 +45,14 @@
 </template>
 
 <script>
+import { cron } from 'vue-cron'
 export default {
   components: {
+    cron
   },
   data () {
     return {
-      cronPopover: false,
+      cronPopoverShow: false,
       visible: false,
       dataForm: {
         id: 0,

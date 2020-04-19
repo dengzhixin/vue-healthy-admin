@@ -20,4 +20,12 @@ export default {
   width: 100%;
   margin: 24px 0;
 }
+.layout-row {
+  display: flex;
+  flex-direction: row;
+}
+.layout-col {
+  display: flex;
+  flex-direction: column;
+}
 </style>

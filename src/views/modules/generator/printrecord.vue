@@ -3,9 +3,8 @@
     <el-form :inline="true"
              :model="dataForm"
              @keyup.enter.native="getDataList()">
-      <el-form-item>
-        <el-input v-model="dataForm.key"
-                  placeholder="参数名"
+      <el-form-item label="流水号">
+        <el-input v-model="dataForm.id"
                   clearable></el-input>
       </el-form-item>
       <el-form-item>
@@ -122,7 +121,7 @@ export default {
     return {
       printRecordStatus: ['未饱和', '待导出', '待导出', '已导出'],
       dataForm: {
-        key: ''
+        id: ''
       },
       dataList: [],
       pageIndex: 1,
@@ -166,7 +165,7 @@ export default {
         params: this.$http.adornParams({
           'page': this.pageIndex,
           'limit': this.pageSize,
-          'key': this.dataForm.key
+          'id': this.dataForm.id
         })
       }).then(({ data }) => {
         if (data && data.code === 0) {

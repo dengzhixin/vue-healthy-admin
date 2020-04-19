@@ -48,6 +48,11 @@ let orderDetailStatus = {
     text: '关闭',
     value: 8,
     type: 'info'
+  },
+  '9': {
+    text: '待制作',
+    value: 9,
+    type: 'info'
   }
 }
 export default orderDetailStatus
