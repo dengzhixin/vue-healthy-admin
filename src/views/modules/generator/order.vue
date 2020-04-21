@@ -15,6 +15,7 @@
       </el-form-item>
       <el-form-item label="状态：">
         <el-select v-model="dataForm.odStatus"
+                   clearable
                    placeholder="请选择">
           <el-option v-for="item in orderDetailStatus"
                      :key="item.value"
@@ -34,7 +35,7 @@
       </el-form-item>
 
       <el-form-item>
-        <el-button @click="getDataList()">查询</el-button>
+        <el-button @click="search()">查询</el-button>
       </el-form-item>
     </el-form>
     <div>
@@ -82,6 +83,20 @@
                        label="外部订单编号">
 
       </el-table-column>
+      <el-table-column prop="buyerNick"
+                       header-align="center"
+                       align="center"
+                       width="100"
+                       label="买家">
+        <template slot-scope="scope">
+
+          <a target="_blank"
+             :href="'http://www.taobao.com/webww/ww.php?ver=3&touid='+scope.row.buyerNick+'&siteid=cntaobao&status=1&charset=utf-8'"><img border="0"
+                 :src="'http://amos.alicdn.com/realonline.aw?v=2&uid='+scope.row.buyerNick+'&site=cntaobao&s=1&charset=utf-8'"
+                 alt="点击这里给我发消息" /></a>
+        </template>
+      </el-table-column>
+
       <!-- <el-table-column prop="status"
                        header-align="center"
                        align="center"
@@ -237,6 +252,10 @@ export default {
 
   },
   methods: {
+    search () {
+      this.pageIndex = 1
+      this.getDataList()
+    },
     redo (row, index, id) {
       this.dataListLoading = true
       this.$http({
@@ -247,14 +266,9 @@ export default {
         this.getDataList()
       })
     },
-    search () {
-
-    },
     // 获取数据列表
     getDataList (map) {
       this.dataListLoading = true
-      window.time = this.dataForm.time
-      console.log(this.dataForm.time)
       this.$http({
         url: this.$http.adornUrl('/generator/order/list'),
         method: 'get',

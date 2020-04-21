@@ -120,13 +120,21 @@ export default {
       }
     },
     dataFormSubmit () {
+      let loading = this.$loading({
+        lock: true,
+        text: 'Loading',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      })
       this.$http({
         url: this.$http.adornUrl('/generator/order/saveFromExcel'),
         method: 'POST',
         data: this.orders
       }).then(({ data }) => {
         this.$message(data.msg)
+        loading.close()
         this.$emit('refreshDataList')
+        this.visible = false
       })
     }
   }

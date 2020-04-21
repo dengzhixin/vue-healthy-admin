@@ -4,14 +4,28 @@
              :model="dataForm"
              @keyup.enter.native="getDataList()">
       <el-form-item label="流水号">
-        <el-input v-model="dataForm.id"
+        <el-input type="number"
+                  v-model="dataForm.id"
                   clearable></el-input>
       </el-form-item>
+      <el-form-item label="状态：">
+        <el-select clearable
+                   v-model="dataForm.status"
+                   placeholder="请选择">
+          <el-option v-for="item in printRecordStatus"
+                     :key="item.value"
+                     :label="item.text"
+                     :value="item.value">
+          </el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item>
-        <el-button @click="getDataList()">查询</el-button>
+        <el-button @click="search()">查询</el-button>
         <el-button type="primary"
+                   @click="download">批量下载</el-button>
+        <el-button v-if="isAuth('generator:printrecord:download')"
+                   type="primary"
                    @click="loadPrint">下载所有可打印文件</el-button>
-
         <!-- <el-button v-if="isAuth('generator:printrecord:save')"
                    type="primary"
                    @click="addOrUpdateHandle()">新增</el-button>
@@ -53,7 +67,7 @@
         <template slot-scope="scope">
           <img style="width:100%;max-height:150px;object-fit: contain"
                :src="scope.row.printUrl +'?x-oss-process=style/200x'"
-               alt="图片过大">
+               alt="">
           <a :href="scope.row.printUrl"
              target="_blank">查看原图</a>
         </template>
@@ -63,7 +77,7 @@
                        align="center"
                        label="状态">
         <template slot-scope="scope">
-          {{printRecordStatus[scope.row.status]}}
+          {{printRecordStatus[scope.row.status].text}}
         </template>
       </el-table-column>
       <el-table-column prop="createTime"
@@ -113,15 +127,17 @@
 <script>
 import AddOrUpdate from './printrecord-add-or-update'
 import loadImages from '../../../utils/loadImages.js'
+import printRecordStatus from './status/printRecordStatus.js'
 import {
   saveAs
 } from 'file-saver'
 export default {
   data () {
     return {
-      printRecordStatus: ['未饱和', '待导出', '待导出', '已导出'],
+      printRecordStatus: printRecordStatus,
       dataForm: {
-        id: ''
+        id: '',
+        status: ''
       },
       dataList: [],
       pageIndex: 1,
@@ -139,22 +155,51 @@ export default {
     this.getDataList()
   },
   methods: {
+    download () {
+      let loading = this.$loading({
+        lock: true,
+        text: '正在生成下载包，时间较长，请耐心等待',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      })
+      this.downloadPrintRecord(this.dataListSelections).then((data) => {
+        if (data && data.code === 0) {
+          loadImages(this.dataListSelections.map((record) => {
+            return { url: record.printUrl, name: record.id }
+          }), () => {
+            loading.close()
+            this.dataListLoading = false
+          })
+        }
+      })
+    },
     loadPrint () {
+      let loading = this.$loading({
+        lock: true,
+        text: 'Loading',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      })
       this.dataListLoading = true
 
       this.$http({
         url: this.$http.adornUrl('/generator/printrecord/listCanPrint'),
         method: 'get'
       }).then(({ data }) => {
+        this.dataListLoading = false
         if (data && data.code === 0) {
           console.log(data.list)
           loadImages(data.list.map((record) => {
             return record.printUrl
-          }))
-          this.dataListLoading = false
-        } else {
+          }), () => {
+            loading.close()
+          })
         }
       })
+    },
+    search () {
+      this.pageIndex = 1
+      this.getDataList()
     },
     // 获取数据列表
     getDataList () {
@@ -165,7 +210,8 @@ export default {
         params: this.$http.adornParams({
           'page': this.pageIndex,
           'limit': this.pageSize,
-          'id': this.dataForm.id
+          'id': this.dataForm.id,
+          'status': this.dataForm.status
         })
       }).then(({ data }) => {
         if (data && data.code === 0) {
@@ -232,7 +278,24 @@ export default {
     },
     // 下载
     downloadHandle (row) {
-      saveAs(row.printUrl, '流水号' + row.id + '.png')
+      this.downloadPrintRecord([row]).then(() => {
+        saveAs(row.printUrl, '流水号' + row.id + '.png')
+      })
+    },
+    downloadPrintRecord (records) {
+      let that = this
+      return new Promise((resolve, reject) => {
+        this.$http({
+          url: this.$http.adornUrl('/generator/printrecord/download'),
+          method: 'post',
+          data: JSON.stringify({
+            'records': records
+          })
+        }).then(({ data }) => {
+          that.getDataList()
+          resolve(data)
+        })
+      })
     }
   }
 }

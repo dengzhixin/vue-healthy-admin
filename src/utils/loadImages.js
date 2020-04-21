@@ -5,7 +5,7 @@ import {
   saveAs
 } from 'file-saver'
 
-function loadImages(array) {
+function loadImages(array, callback) {
   var zip = new JSZip() //* ****创建实例，zip是对象实例
   var fileName = 'pic.zip'
 
@@ -19,10 +19,10 @@ function loadImages(array) {
   }
   for (let i = 0; i < array.length; i++) {
     // 对每一个图片链接获取base64的数据，并使用回调函数处理
-    getBase64Image(array[i], function (dataURL) {
+    getBase64Image(array[i].url, function (dataURL) {
       // 对获取的图片base64数据进行处理
       var imgArr = dataURL.split(',')
-      zip.file(i.toString() + '.jpg', imgArr[1], {
+      zip.file(array[i].name + '.jpg', imgArr[1], {
         base64: true
       }) // 根据base64数据在压缩包中生成jpg数据
       var ziplength = len(zip.files)
@@ -33,6 +33,9 @@ function loadImages(array) {
         }).then(function (content) {
           // console.log(content);
           saveAs(content, fileName)
+          if (callback) {
+            callback()
+          }
         })
       }
     })

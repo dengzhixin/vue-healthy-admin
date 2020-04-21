@@ -1,9 +1,4 @@
 let orderDetailStatus = {
-  '0': {
-    text: '',
-    value: '',
-    type: ''
-  },
   '01': {
     text: '待付款',
     value: '-1',
@@ -40,9 +35,9 @@ let orderDetailStatus = {
     type: 'danger'
   },
   '7': {
-    text: '非胶卷',
+    text: '找不到制作模板',
     value: 7,
-    type: 'info'
+    type: 'warning'
   },
   '8': {
     text: '关闭',
@@ -52,7 +47,7 @@ let orderDetailStatus = {
   '9': {
     text: '待制作',
     value: 9,
-    type: 'info'
+    type: 'success'
   }
 }
 export default orderDetailStatus
