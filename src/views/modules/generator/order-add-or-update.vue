@@ -36,7 +36,12 @@
         <el-input v-model="dataForm.sellerMsg"
                   placeholder="卖家留言"></el-input>
       </el-form-item>
-      <span>可选操作：</span>
+      <el-form-item label="系统备注"
+                    prop="remarks">
+        <el-input v-model="dataForm.remarks"
+                  placeholder="系统备注"></el-input>
+      </el-form-item>
+      <!-- <span>可选操作：</span>
       <el-button style="display:inline-block"
                  @click="addFilm">添加胶卷</el-button>
       <el-upload style="display:inline-block"
@@ -99,7 +104,7 @@
           </vuedraggable>
         </div>
 
-      </el-form>
+      </el-form> -->
 
       <!-- <el-upload :action="url"
                  :multiple="false"
@@ -142,7 +147,8 @@ export default {
         orderCreateTime: '',
         payTime: '',
         createTime: '',
-        status: ''
+        status: '',
+        remarks: ''
       },
       orderDetailList: [],
       dataRule: {
@@ -312,6 +318,7 @@ export default {
               this.dataForm.payTime = data.order.payTime
               this.dataForm.createTime = data.order.createTime
               this.dataForm.status = data.order.status
+              this.dataForm.remarks = data.order.remarks
               this.orderDetailList = data.orderDetail.map((orderDetail) => {
                 if (orderDetail.imgs == null) {
                   orderDetail.imgs = []
@@ -354,6 +361,7 @@ export default {
                 'payTime': this.dataForm.payTime,
                 'createTime': this.dataForm.createTime,
                 'status': this.dataForm.status,
+                'remarks': this.dataForm.remarks,
                 'list': this.orderDetailList.map((od) => {
                   let _od = JSON.stringify(od)
                   let clone = JSON.parse(_od)

@@ -28,7 +28,9 @@ export default {
   display: flex;
   flex-direction: column;
 }
-
+.jscenter {
+  align-items: center;
+}
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;

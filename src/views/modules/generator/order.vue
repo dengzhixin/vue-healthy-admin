@@ -5,24 +5,47 @@
              label-position="left"
              label-width="100px"
              @keyup.enter.native="getDataList()">
-      <el-form-item label="内部订单号：">
-        <el-input v-model="dataForm.code"
-                  clearable></el-input>
-      </el-form-item>
-      <el-form-item label="外部订单号：">
-        <el-input v-model="dataForm.excode"
+      <el-form-item label="标题：">
+        <el-input v-model="dataForm.title"
                   clearable></el-input>
       </el-form-item>
       <el-form-item label="状态：">
         <el-select v-model="dataForm.odStatus"
-                   clearable
-                   placeholder="请选择">
+                   clearable>
           <el-option v-for="item in orderDetailStatus"
                      :key="item.value"
                      :label="item.text"
                      :value="item.value">
           </el-option>
         </el-select>
+      </el-form-item>
+      <el-form-item label="颜色分类">
+        <el-input v-model="dataForm.skuName"
+                  clearable></el-input>
+      </el-form-item>
+      <el-form-item label="系统编号：">
+        <el-input v-model="dataForm.code"
+                  clearable></el-input>
+      </el-form-item>
+      <el-form-item label="订单号：">
+        <el-input v-model="dataForm.excode"
+                  clearable></el-input>
+      </el-form-item>
+
+      <el-form-item label="店铺"
+                    prop="originId">
+        <remoteSelect :model="dataForm"
+                      type="origin"
+                      fild="originId"
+                      label="origin"
+                      value="id"
+                      :clearable='true'
+                      @change="originIdChange">
+        </remoteSelect>
+      </el-form-item>
+      <el-form-item label="买家昵称">
+        <el-input v-model="dataForm.buyerNick"
+                  clearable></el-input>
       </el-form-item>
       <el-form-item label="下单时间：">
         <el-date-picker v-model="dataForm.time"
@@ -70,18 +93,66 @@
                        align="center"
                        label="id">
       </el-table-column> -->
-      <el-table-column prop="code"
-                       header-align="center"
-                       align="center"
-                       label="系统内部订单编号"
-                       width="200">
-      </el-table-column>
-      <el-table-column prop="exCode"
-                       header-align="center"
-                       align="center"
-                       width="200"
-                       label="外部订单编号">
+      <el-table-column label="详情"
+                       width="600">
+        <template slot-scope="scope">
+          <div v-for="(d,index) in scope.row.list"
+               :key="index">
+            <div class="layout-row od">
+              <img class="odImg"
+                   :src="d.picPath">
+              <div class="layout-col">
+                {{d.title}}<br />
+                {{d.skuName}}<br />
+                <div class="layout-row jscenter">
+                  关联模板:{{d.filmName?d.filmName:'无'}}
+                  数量：
+                  <el-popover v-if="d.number>1"
+                              placement="top-start"
+                              width="200"
+                              trigger="hover">
+                    <el-tag slot="reference">{{d.number}}</el-tag>
+                    <el-button type="text"
+                               @click="splitOrderDetail(d)">拆分</el-button>
+                  </el-popover>
+                  <el-tag v-else>{{d.number}}</el-tag>
 
+                  <!-- <template>
+                <br />
+                <a href="#"
+                   @click.prevent="redo(scope,index,d.id)"><i class="el-icon-refresh"></i>重做</a>
+              </template> -->
+                </div>
+                <el-popover placement="top-start"
+                            width="200"
+                            trigger="hover">
+
+                  <el-tag v-if="scope.row.status!=1"
+                          slot="reference"
+                          :type="orderDetailStatus[d.status].type">{{orderDetailStatus[d.status].text}}</el-tag>
+                  <el-tag v-else
+                          slot="reference"
+                          :type="orderStatus[scope.row.status].type">{{orderStatus[scope.row.status].text}}</el-tag>
+                  <template v-if="d.printUrl">
+                    <br />
+                    <el-link icon="el-icon-picture"
+                             :href="d.printUrl +'?x-oss-process=style/h150'"
+                             target="_bank">查看效果图</el-link>
+                  </template>
+                  <template>
+                    <br />
+                    <a href="#"
+                       @click.prevent="edit(scope.row,index,d.id)"><i class="el-icon-refresh"></i>修改</a>
+                  </template>
+                </el-popover>
+              </div>
+            </div>
+
+            <div v-if="index<scope.row.list.length-1"
+                 class="divider"></div>
+          </div>
+
+        </template>
       </el-table-column>
       <el-table-column prop="buyerNick"
                        header-align="center"
@@ -89,12 +160,31 @@
                        width="100"
                        label="买家">
         <template slot-scope="scope">
+          <el-tooltip class="item"
+                      effect="dark"
+                      :content="scope.row.buyerNick"
+                      placement="bottom">
+            <a target="_blank"
+               :href="'http://www.taobao.com/webww/ww.php?ver=3&touid='+scope.row.buyerNick+'&siteid=cntaobao&status=1&charset=utf-8'"><img border="0"
+                   :src="'http://amos.alicdn.com/realonline.aw?v=2&uid='+scope.row.buyerNick+'&site=cntaobao&s=1&charset=utf-8'"
+                   alt="点击这里给我发消息">
+            </a>
+          </el-tooltip>
 
-          <a target="_blank"
-             :href="'http://www.taobao.com/webww/ww.php?ver=3&touid='+scope.row.buyerNick+'&siteid=cntaobao&status=1&charset=utf-8'"><img border="0"
-                 :src="'http://amos.alicdn.com/realonline.aw?v=2&uid='+scope.row.buyerNick+'&site=cntaobao&s=1&charset=utf-8'"
-                 alt="点击这里给我发消息" /></a>
         </template>
+      </el-table-column>
+      <el-table-column prop="code"
+                       header-align="center"
+                       align="center"
+                       label="系统编号"
+                       width="200">
+      </el-table-column>
+      <el-table-column prop="exCode"
+                       header-align="center"
+                       align="center"
+                       width="200"
+                       label="订单号">
+
       </el-table-column>
 
       <!-- <el-table-column prop="status"
@@ -105,42 +195,6 @@
           <el-tag :type="orderStatus[scope.row.status].type">{{orderStatus[scope.row.status].text}}</el-tag>
         </template>
       </el-table-column> -->
-      <el-table-column label="详情"
-                       width="200">
-        <template slot-scope="scope">
-          <div v-for="(d,index) in scope.row.list"
-               :key="d.filmName">
-            {{d.number}}个{{d.filmName}}
-            <el-popover placement="top-start"
-                        width="200"
-                        trigger="hover">
-
-              <el-tag v-if="scope.row.status!=1"
-                      slot="reference"
-                      :type="orderDetailStatus[d.status].type">{{orderDetailStatus[d.status].text}}</el-tag>
-              <el-tag v-else
-                      slot="reference"
-                      :type="orderStatus[scope.row.status].type">{{orderStatus[scope.row.status].text}}</el-tag>
-              <template v-if="d.printUrl">
-                <br />
-                <el-link icon="el-icon-picture"
-                         :href="d.printUrl +'?x-oss-process=style/h150'"
-                         target="_bank">查看效果图</el-link>
-              </template>
-
-              <template>
-                <br />
-                <a href="#"
-                   @click.prevent="redo(scope,index,d.id)"><i class="el-icon-refresh"></i>重做</a>
-              </template>
-            </el-popover>
-
-            <div v-if="index<scope.row.list.length-1"
-                 class="divider"></div>
-          </div>
-
-        </template>
-      </el-table-column>
 
       <!-- <el-table-column prop="buyerMsg"
                        header-align="center"
@@ -151,6 +205,11 @@
                        header-align="center"
                        align="center"
                        label="卖家留言">
+      </el-table-column>
+      <el-table-column prop="remarks"
+                       header-align="center"
+                       align="center"
+                       label="系统备注">
       </el-table-column>
       <el-table-column prop="orderCreateTime"
                        header-align="center"
@@ -171,9 +230,9 @@
       <el-table-column prop="originName"
                        header-align="center"
                        align="center"
-                       label="来源">
+                       label="店铺">
       </el-table-column>
-      <el-table-column fixed="right"
+      <!-- <el-table-column fixed="right"
                        header-align="center"
                        align="center"
                        width="150"
@@ -186,7 +245,7 @@
                      size="small"
                      @click="deleteHandle(scope.row.id)">删除</el-button>
         </template>
-      </el-table-column>
+      </el-table-column> -->
 
     </el-table>
     <el-pagination @size-change="sizeChangeHandle"
@@ -201,6 +260,10 @@
     <add-or-update v-if="addOrUpdateVisible"
                    ref="addOrUpdate"
                    @refreshDataList="getDataList"></add-or-update>
+    <add-or-update-order-detail v-if="addOrUpdateOrderDetailVisible"
+                                ref="AddOrUpdateOrderDetail"
+                                @refreshDataList="getDataList">
+    </add-or-update-order-detail>
     <OrderImport v-if="orderImportVisible"
                  ref="orderImport"
                  @refreshDataList="getDataList"></OrderImport>
@@ -209,8 +272,12 @@
 
 <script>
 import AddOrUpdate from './order-add-or-update'
+import AddOrUpdateOrderDetail from './orderdetail-add-or-update'
+
 import OrderImport from './order-import.vue'
 import orderDetailStatus from './orderDetailStatus.js'
+import remoteSelect from '../../common/remoteSelect'
+
 export default {
   name: 'order',
   data () {
@@ -228,7 +295,11 @@ export default {
         code: '',
         excode: '',
         odStatus: '',
-        time: ['', '']
+        time: ['', ''],
+        title: '',
+        skuName: '',
+        originId: '',
+        buyerNick: ''
       },
       currentCellDetail: undefined,
       dataList: [],
@@ -238,12 +309,16 @@ export default {
       dataListLoading: false,
       dataListSelections: [],
       addOrUpdateVisible: false,
-      orderImportVisible: false
+      orderImportVisible: false,
+      addOrUpdateOrderDetailVisible: false
+
     }
   },
   components: {
     AddOrUpdate,
-    OrderImport
+    OrderImport,
+    AddOrUpdateOrderDetail,
+    remoteSelect
   },
   activated () {
     this.getDataList()
@@ -252,9 +327,49 @@ export default {
 
   },
   methods: {
+    originIdChange (value) {
+      this.dataForm.originId = value
+    },
+    splitOrderDetail (od) {
+      this.$prompt('请输入拆分数量格式(例：3个拆分为2个和1个，则输入2+1)', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }).then(({ value }) => {
+        let split = value.split('+')
+        let sum = 0
+        split.forEach((s) => {
+          sum += parseInt(s)
+        })
+        if (sum !== od.number) {
+          this.$message.error('输入的数量加起来必须和拆分前数量一致')
+          return
+        }
+        this.$http({
+          url: this.$http.adornUrl(`/generator/orderdetail/split/${od.id}/${value}`),
+          method: 'put'
+        }).then(({ data }) => {
+          if (data && data.code === 0) {
+            console.log(data)
+            this.getDataList()
+          }
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '取消拆分'
+        })
+      })
+    },
     search () {
       this.pageIndex = 1
       this.getDataList()
+    },
+    edit (row, index, id) {
+      console.log(row)
+      this.addOrUpdateOrderDetailVisible = true
+      this.$nextTick(() => {
+        this.$refs.AddOrUpdateOrderDetail.init(id)
+      })
     },
     redo (row, index, id) {
       this.dataListLoading = true
@@ -277,7 +392,11 @@ export default {
           'limit': this.pageSize,
           'code': this.dataForm.code,
           'excode': this.dataForm.excode,
+          'originId': this.dataForm.originId,
           'odStatus': this.dataForm.odStatus,
+          'title': this.dataForm.title,
+          'skuName': this.dataForm.skuName,
+          'buyerNick': this.dataForm.buyerNick,
           'timeStart': this.dataForm.time[0] === '' ? '' : this.dataForm.time[0].Format('yyyy-MM-dd hh:mm:ss'),
           'timeEnd': this.dataForm.time[1] === '' ? '' : this.dataForm.time[1].Format('yyyy-MM-dd hh:mm:ss')
         })
@@ -363,3 +482,10 @@ export default {
   }
 }
 </script>
+<style scoped>
+.odImg {
+  width: 80px;
+  height: 80px;
+  margin-right: 10px;
+}
+</style>

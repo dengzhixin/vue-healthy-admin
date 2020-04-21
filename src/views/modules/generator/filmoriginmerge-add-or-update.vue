@@ -7,7 +7,7 @@
              ref="dataForm"
              @keyup.enter.native="dataFormSubmit()"
              label-width="80px">
-      <el-form-item label="来源地"
+      <el-form-item label="店铺"
                     prop="originId">
         <remoteSelect :model="dataForm"
                       type="origin"

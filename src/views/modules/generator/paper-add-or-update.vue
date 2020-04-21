@@ -12,6 +12,11 @@
         <uploadImageCard :preImage="dataForm.bgUrl"
                          @uploadSuccess="uploadSuccess"></uploadImageCard>
       </el-form-item>
+      <el-form-item label="名称"
+                    prop="name">
+        <el-input v-model="dataForm.name"
+                  placeholder="名称"></el-input>
+      </el-form-item>
       <el-form-item label="行数"
                     prop="number">
         <el-input v-model="dataForm.number"
@@ -61,13 +66,17 @@ export default {
     return {
       visible: false,
       dataForm: {
-        id: 0,
+        name: '',
+        id: undefined,
         bgUrl: '',
         number: '',
         xys: '',
         maxWidth: ''
       },
       dataRule: {
+        name: [
+          { required: true, message: '名称不能为空', trigger: 'blur' }
+        ],
         bgUrl: [
           { required: true, message: '打印纸底板不能为空', trigger: 'blur' }
         ],
@@ -103,10 +112,10 @@ export default {
           }).then(({ data }) => {
             if (data && data.code === 0) {
               this.dataForm.bgUrl = data.paper.bgUrl
+              this.dataForm.name = data.paper.name
               this.dataForm.number = data.paper.number
               this.dataForm.xys = data.paper.xys
               this.dataForm.maxWidth = data.paper.maxWidth
-              console.log(data.paper.filmIds.split(','))
               this.dataForm.filmIds = data.paper.filmIds.split(',').map(id => parseInt(id))
             }
           })
@@ -123,6 +132,7 @@ export default {
             data: this.$http.adornData({
               'id': this.dataForm.id || undefined,
               'bgUrl': this.dataForm.bgUrl,
+              'name': this.dataForm.name,
               'number': this.dataForm.number,
               'xys': this.dataForm.xys,
               'maxWidth': this.dataForm.maxWidth,
@@ -133,7 +143,7 @@ export default {
               this.$message({
                 message: '操作成功',
                 type: 'success',
-                duration: 1500,
+                duration: 1000,
                 onClose: () => {
                   this.visible = false
                   this.$emit('refreshDataList')

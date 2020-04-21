@@ -5,7 +5,7 @@ import {
   saveAs
 } from 'file-saver'
 
-function loadImages(array, callback) {
+function loadImages(array, callback, progress) {
   var zip = new JSZip() //* ****创建实例，zip是对象实例
   var fileName = 'pic.zip'
 
@@ -27,6 +27,9 @@ function loadImages(array, callback) {
       }) // 根据base64数据在压缩包中生成jpg数据
       var ziplength = len(zip.files)
       console.log('加载完' + i)
+      if (progress) {
+        progress(ziplength / array.length)
+      }
       if (ziplength === array.length) { // 当所有图片都已经生成打包并保存zip
         zip.generateAsync({
           type: 'blob'

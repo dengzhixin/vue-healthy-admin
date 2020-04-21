@@ -1,5 +1,13 @@
 <template>
   <div class="mod-config">
+    <template v-if="percentage>0 && percentage<100">
+      <el-progress :text-inside="
+              true"
+                   :stroke-width="26"
+                   :percentage="percentage"></el-progress>
+      <p></p>
+    </template>
+
     <el-form :inline="true"
              :model="dataForm"
              @keyup.enter.native="getDataList()">
@@ -23,9 +31,9 @@
         <el-button @click="search()">查询</el-button>
         <el-button type="primary"
                    @click="download">批量下载</el-button>
-        <el-button v-if="isAuth('generator:printrecord:download')"
+        <!-- <el-button v-if="isAuth('generator:printrecord:download')"
                    type="primary"
-                   @click="loadPrint">下载所有可打印文件</el-button>
+                   @click="loadPrint">下载所有可打印文件</el-button> -->
         <!-- <el-button v-if="isAuth('generator:printrecord:save')"
                    type="primary"
                    @click="addOrUpdateHandle()">新增</el-button>
@@ -121,11 +129,13 @@
     <add-or-update v-if="addOrUpdateVisible"
                    ref="addOrUpdate"
                    @refreshDataList="getDataList"></add-or-update>
+
   </div>
 </template>
 
 <script>
 import AddOrUpdate from './printrecord-add-or-update'
+
 import loadImages from '../../../utils/loadImages.js'
 import printRecordStatus from './status/printRecordStatus.js'
 import {
@@ -134,6 +144,7 @@ import {
 export default {
   data () {
     return {
+      percentage: 0,
       printRecordStatus: printRecordStatus,
       dataForm: {
         id: '',
@@ -144,8 +155,7 @@ export default {
       pageSize: 10,
       totalPage: 0,
       dataListLoading: false,
-      dataListSelections: [],
-      addOrUpdateVisible: false
+      dataListSelections: []
     }
   },
   components: {
@@ -156,47 +166,53 @@ export default {
   },
   methods: {
     download () {
-      let loading = this.$loading({
-        lock: true,
-        text: '正在生成下载包，时间较长，请耐心等待',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      })
-      this.downloadPrintRecord(this.dataListSelections).then((data) => {
-        if (data && data.code === 0) {
-          loadImages(this.dataListSelections.map((record) => {
-            return { url: record.printUrl, name: record.id }
-          }), () => {
-            loading.close()
-            this.dataListLoading = false
-          })
-        }
-      })
-    },
-    loadPrint () {
-      let loading = this.$loading({
-        lock: true,
-        text: 'Loading',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      })
-      this.dataListLoading = true
-
-      this.$http({
-        url: this.$http.adornUrl('/generator/printrecord/listCanPrint'),
-        method: 'get'
-      }).then(({ data }) => {
+      this.percentage = 10
+      loadImages(this.dataListSelections.map((record) => {
+        return { url: record.printUrl, name: record.id }
+      }), () => {
         this.dataListLoading = false
-        if (data && data.code === 0) {
-          console.log(data.list)
-          loadImages(data.list.map((record) => {
-            return record.printUrl
-          }), () => {
-            loading.close()
+        setTimeout(() => {
+          let loading = this.$loading({
+            lock: true,
+            text: '正在同步导出记录到系统',
+            spinner: 'el-icon-loading',
+            background: 'rgba(0, 0, 0, 0.7)'
           })
-        }
+          this.downloadPrintRecord(this.dataListSelections).then((data) => {
+            if (data && data.code === 0) {
+              loading.close()
+            }
+          })
+        }, 300)
+      }, (percent) => {
+        this.percentage = percent * 100
       })
     },
+    // loadPrint () {
+    //   this.dataListLoading = true
+
+    //   let loading = this.$loading({
+    //     lock: true,
+    //     text: 'Loading',
+    //     spinner: 'el-icon-loading',
+    //     background: 'rgba(0, 0, 0, 0.7)'
+    //   })
+
+    //   this.$http({
+    //     url: this.$http.adornUrl('/generator/printrecord/listCanPrint'),
+    //     method: 'get'
+    //   }).then(({ data }) => {
+    //     if (data && data.code === 0) {
+    //       loadImages(data.list.map((record) => {
+    //         return record.printUrl
+    //       }), () => {
+    //         this.dataListLoading = false
+
+    //         loading.close()
+    //       })
+    //     }
+    //   })
+    // },
     search () {
       this.pageIndex = 1
       this.getDataList()

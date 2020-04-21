@@ -2,6 +2,7 @@
   <div class=''>
     <el-select v-model="model[fild]"
                :multiple="multiple"
+               :clearable="clearable"
                filterable
                remote
                placeholder="选择或输入关键字"
@@ -27,6 +28,10 @@ export default {
     value: String,
     index: Number,
     multiple: {
+      type: Boolean,
+      default: false
+    },
+    clearable: {
       type: Boolean,
       default: false
     }
