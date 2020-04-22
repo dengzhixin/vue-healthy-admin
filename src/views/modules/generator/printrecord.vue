@@ -1,5 +1,5 @@
-<template>
-  <div class="mod-config">
+  <template class="mod-config">
+  <div>
     <template v-if="percentage>0 && percentage<100">
       <el-progress :text-inside="
               true"
@@ -56,34 +56,65 @@
       <el-table-column prop="id"
                        header-align="center"
                        align="center"
-                       label="流水号">
+                       label="流水号"
+                       width="50">
       </el-table-column>
-      <el-table-column prop="filmId"
+      <!-- <el-table-column prop="filmId"
                        header-align="center"
                        align="center"
                        label="胶卷id">
-      </el-table-column>
-      <el-table-column prop="paperId"
+      </el-table-column> -->
+
+      <!-- <el-table-column prop="paperId"
                        header-align="center"
                        align="center"
                        label="打印纸id">
+      </el-table-column> -->
+
+      <!-- <el-table-column header-align="center"
+                       align="center"
+                       label="详情">
+        <template slot-scope="scope">
+          {{scope}}
+          <div v-for="(item,index) in scope.row.orderDetailList"
+                    :key="index">
+            <el-tag>{{item.excode}}</el-tag>
+          </template>
+        </template>
+      </el-table-column> -->
+      <el-table-column header-align="center"
+                       align="center"
+                       label="详情">
+        <template slot-scope="scope">
+          <div v-for="(item,index) in scope.row.orderDetailList"
+               :key="index">
+            <el-tag>{{item.excode}}</el-tag>
+          </div>
+        </template>
       </el-table-column>
       <el-table-column prop="printUrl"
                        header-align="center"
                        align="center"
                        label="打印文件">
         <template slot-scope="scope">
-          <img style="width:100%;max-height:150px;object-fit: contain"
-               :src="scope.row.printUrl +'?x-oss-process=style/200x'"
-               alt="">
-          <a :href="scope.row.printUrl"
-             target="_blank">查看原图</a>
+          <template v-if="scope.row.printUrl">
+            <img style="width:100%;max-height:150px;object-fit: contain"
+                 :src="scope.row.printUrl +'?x-oss-process=style/200x'"
+                 alt="">
+            <a :href="scope.row.printUrl"
+               target="_blank">查看原图</a>
+          </template>
+          <template v-else>
+            暂无
+          </template>
         </template>
       </el-table-column>
+
       <el-table-column prop="status"
                        header-align="center"
                        align="center"
-                       label="状态">
+                       label="状态"
+                       width="80">
         <template slot-scope="scope">
           {{printRecordStatus[scope.row.status].text}}
         </template>
@@ -108,9 +139,14 @@
                        width="150"
                        label="操作">
         <template slot-scope="scope">
-          <el-button type="text"
+          <el-button v-if="scope.row.printUrl"
+                     type="text"
                      size="small"
                      @click="downloadHandle(scope.row)">下载</el-button>
+          <el-button v-else
+                     type="text"
+                     size="small"
+                     @click="makeHandle(scope.row)">立即生成打印文件</el-button>
           <!-- <el-button type="text"
                      size="small"
                      @click="deleteHandle(scope.row.id)">删除</el-button> -->
@@ -129,7 +165,6 @@
     <add-or-update v-if="addOrUpdateVisible"
                    ref="addOrUpdate"
                    @refreshDataList="getDataList"></add-or-update>
-
   </div>
 </template>
 

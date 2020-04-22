@@ -3,6 +3,14 @@
              :close-on-click-modal="false"
              :visible.sync="visible">
 
+    <template v-if="dataForm.id">
+      <el-alert title="若胶卷已经制作，修改后会自动重做，若非必要，请勿随意修改"
+                :closable="false"
+                type="warning">
+      </el-alert>
+      <p></p>
+
+    </template>
     <el-form :model="dataForm"
              :rules="dataRule"
              class=""
@@ -47,7 +55,7 @@
                            type="button"
                            buttonText="上传图片"
                            @uploadSuccess="getNewImg"></uploadImageCard>
-          <el-upload v-if="dataForm.imgs.length=0"
+          <el-upload v-if="dataForm.imgs==null ||dataForm.imgs.length==0"
                      :action="url"
                      :multiple="false"
                      :on-success="uploadImgsZip"
@@ -71,7 +79,7 @@
 
 <script>
 import remoteSelect from '../../common/remoteSelect'
-// import JsZip from 'jszip'
+import JsZip from 'jszip'
 import vuedraggable from 'vuedraggable'
 import uploadImageCard from '../../common/uploadImageCard'
 
@@ -88,7 +96,7 @@ export default {
         orderId: '',
         filmId: '',
         status: '',
-        imgs: '',
+        imgs: [],
         printUrl: '',
         printWidth: '',
         printHeight: '',
@@ -126,8 +134,57 @@ export default {
     this.url = this.$http.adornUrl(`/sys/oss/uploadZip?token=${this.$cookie.get('token')}`)
   },
   methods: {
-    uploadImgsZip () {
+    uploadImgsZip (zip) {
+      let that = this
+      var zipUtil = new JsZip()
+      let imgFiles = []
+      zipUtil.loadAsync(zip.raw)
+        .then(function (zfile) {
+          let fileNum = Object.keys(zipUtil.files).length
+          Object.keys(zipUtil.files).forEach((key) => {
+            let file = zfile.files[key]
+            console.log(file)
+            if (file.dir === false) {
+              let name = file.name
+              let ff = zipUtil.file(name)
+              ff.async('base64').then((base64) => {
+                base64 = 'data:image/png;base64,' + base64
+                // console.log(base64)
+                console.log(base64)
+                let f = that.dataURLtoFile(base64, name)
+                imgFiles.push(f)
+                fileNum -= 1
+                if (fileNum === 0) {
+                  that.requestUploadFiles(imgFiles)
+                }
+              })
+            } else {
+              fileNum -= 1
+            }
 
+            //   // var base64 = this.arrayBufferToBase64(buffer)
+            //   // console.log(base64)
+          })
+          console.log(imgFiles)
+        })
+    },
+    requestUploadFiles (files) {
+      let param = new FormData() // 创建form对象
+      files.forEach((f) => {
+        param.append('files', f)// 通过append向form对象添加数据
+      })
+      let config = {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      } // 添加请求头
+      this.$http.post(this.$http.adornUrl(`/sys/oss/uploads`), param, config)
+        .then(({ data }) => {
+          // orderDetailList
+          let imgs = data.urls.map((u) => {
+            return { number: 1, url: u, angle: 0 }
+          })
+
+          this.dataForm.imgs.concat(imgs)
+        })
     },
     deleteImg (imgIndex) {
       this.dataForm.imgs.splice(imgIndex, 1)
@@ -178,6 +235,7 @@ export default {
     dataFormSubmit () {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
+          alert(valid)
           if (this.dataForm.status >= 3) {
             this.dataForm.status = 2
           }

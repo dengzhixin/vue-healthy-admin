@@ -361,13 +361,7 @@ export default {
                 'payTime': this.dataForm.payTime,
                 'createTime': this.dataForm.createTime,
                 'status': this.dataForm.status,
-                'remarks': this.dataForm.remarks,
-                'list': this.orderDetailList.map((od) => {
-                  let _od = JSON.stringify(od)
-                  let clone = JSON.parse(_od)
-                  clone.imgs = JSON.stringify(clone.imgs)
-                  return clone
-                })
+                'remarks': this.dataForm.remarks
               }
 
             )

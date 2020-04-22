@@ -28,15 +28,22 @@
                  :auto-upload="false">
         <el-button slot="trigger"
                    type="primary">选择订单excel表格</el-button>
-        <span v-if="orders.length>0">{{orders.length}}个订单</span>
+
       </el-upload>
+      <span v-if="orders.length>0">一共{{orders.length}}个订单</span>
+      <template v-if="failImportList.length>0">
+        <p v-for="(item,index) in failImportList"
+           :key="index">{{item.exCode}}已存在</p>
+      </template>
+      <br />
+      <el-button type="primary"
+                 @click="dataFormSubmit()">导入</el-button>
 
     </el-form>
     <span slot="footer"
           class="dialog-footer">
-      <el-button @click="visible = false">取消</el-button>
-      <el-button type="primary"
-                 @click="dataFormSubmit()">确定</el-button>
+      <el-button @click="visible = false">关闭</el-button>
+
     </span>
   </el-dialog>
 </template>
@@ -56,7 +63,8 @@ export default {
       dataForm: {
         originId: undefined
       },
-      orders: []
+      orders: [],
+      failImportList: []
     }
   },
   mounted () {
@@ -65,16 +73,14 @@ export default {
   methods: {
     init () {
       this.visible = true
+      this.failImportList = []
     },
     originIdChange (value) {
       this.dataForm.originId = value
     },
     importOrders (file, fileList) {
-      if (this.dataForm.originId === undefined) {
-        this.$message('请先选择订单来源')
-        return
-      }
       this.orders = []
+      this.failImportList = []
       readWorkbookFromLocalFile(file.raw, (workbook) => {
         let orders = []
         let maxLine = 0
@@ -120,9 +126,13 @@ export default {
       }
     },
     dataFormSubmit () {
+      if (this.dataForm.originId === undefined) {
+        this.$message('请先选择订单来源')
+        return
+      }
       let loading = this.$loading({
         lock: true,
-        text: 'Loading',
+        text: '导入中',
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })
@@ -132,9 +142,12 @@ export default {
         data: this.orders
       }).then(({ data }) => {
         this.$message(data.msg)
+        if (data.failNumber > 0) {
+          this.failImportList = data.failList
+        }
         loading.close()
         this.$emit('refreshDataList')
-        this.visible = false
+        // this.visible = false
       })
     }
   }
