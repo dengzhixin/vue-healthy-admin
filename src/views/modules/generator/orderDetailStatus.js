@@ -48,6 +48,11 @@ let orderDetailStatus = {
     text: '待制作',
     value: 9,
     type: 'success'
+  },
+  '10': {
+    text: '合并中',
+    value: 9,
+    type: 'success'
   }
 }
 export default orderDetailStatus

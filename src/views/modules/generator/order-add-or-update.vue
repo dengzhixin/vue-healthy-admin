@@ -31,11 +31,11 @@
         <el-input v-model="dataForm.buyerMsg"
                   placeholder="买家留言"></el-input>
       </el-form-item> -->
-      <el-form-item label="卖家留言"
+      <!-- <el-form-item label="卖家留言"
                     prop="sellerMsg">
         <el-input v-model="dataForm.sellerMsg"
                   placeholder="卖家留言"></el-input>
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item label="系统备注"
                     prop="remarks">
         <el-input v-model="dataForm.remarks"
@@ -344,6 +344,12 @@ export default {
         this.$message('制作模板或图片不能为空')
         return
       }
+      let loading = this.$loading({
+        lock: true,
+        text: '引入中',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      })
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           this.$http({
@@ -370,7 +376,7 @@ export default {
               this.$message({
                 message: '操作成功',
                 type: 'success',
-                duration: 1500,
+                duration: 1000,
                 onClose: () => {
                   this.visible = false
                   this.$emit('refreshDataList')
@@ -379,6 +385,7 @@ export default {
             } else {
               this.$message.error(data.msg)
             }
+            loading.close()
           })
         }
       })

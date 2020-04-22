@@ -16,6 +16,11 @@
                   v-model="dataForm.id"
                   clearable></el-input>
       </el-form-item>
+      <el-form-item label="订单号">
+        <el-input type="number"
+                  v-model="dataForm.excode"
+                  clearable></el-input>
+      </el-form-item>
       <el-form-item label="状态：">
         <el-select clearable
                    v-model="dataForm.status"
@@ -57,7 +62,7 @@
                        header-align="center"
                        align="center"
                        label="流水号"
-                       width="50">
+                       width="80">
       </el-table-column>
       <!-- <el-table-column prop="filmId"
                        header-align="center"
@@ -71,24 +76,26 @@
                        label="打印纸id">
       </el-table-column> -->
 
-      <!-- <el-table-column header-align="center"
-                       align="center"
-                       label="详情">
-        <template slot-scope="scope">
-          {{scope}}
-          <div v-for="(item,index) in scope.row.orderDetailList"
-                    :key="index">
-            <el-tag>{{item.excode}}</el-tag>
-          </template>
-        </template>
-      </el-table-column> -->
       <el-table-column header-align="center"
                        align="center"
                        label="详情">
         <template slot-scope="scope">
           <div v-for="(item,index) in scope.row.orderDetailList"
                :key="index">
-            <el-tag>{{item.excode}}</el-tag>
+            <el-popover title="效果图预览"
+                        placement="right"
+                        width="720"
+                        trigger="hover">
+              <div class="popbox">
+                <img style="height: 100px"
+                     :src="item.printUrl+'?x-oss-process=style/h150'" />
+              </div>
+
+              <el-tag slot="reference"><a :href="item.printUrl+'?x-oss-process=style/h150'"
+                   target="_blank"
+                   rel="noopener noreferrer">{{item.excode}}</a></el-tag>
+            </el-popover>
+
           </div>
         </template>
       </el-table-column>
@@ -183,14 +190,16 @@ export default {
       printRecordStatus: printRecordStatus,
       dataForm: {
         id: '',
-        status: ''
+        status: '',
+        excode: ''
       },
       dataList: [],
       pageIndex: 1,
       pageSize: 10,
       totalPage: 0,
       dataListLoading: false,
-      dataListSelections: []
+      dataListSelections: [],
+      addOrUpdateVisible: false
     }
   },
   components: {
@@ -200,7 +209,17 @@ export default {
     this.getDataList()
   },
   methods: {
+    makeHandle (row) {
+      this.makdPrintRecord([row])
+      setTimeout(() => {
+        this.getDataList()
+      }, 300)
+    },
     download () {
+      if (this.dataListSelections.length === 0) {
+        this.$message.error('请选择需要下载的打印流')
+        return false
+      }
       this.percentage = 10
       loadImages(this.dataListSelections.map((record) => {
         return { url: record.printUrl, name: record.id }
@@ -262,7 +281,8 @@ export default {
           'page': this.pageIndex,
           'limit': this.pageSize,
           'id': this.dataForm.id,
-          'status': this.dataForm.status
+          'status': this.dataForm.status,
+          'excode': this.dataForm.excode
         })
       }).then(({ data }) => {
         if (data && data.code === 0) {
@@ -347,7 +367,29 @@ export default {
           resolve(data)
         })
       })
+    },
+    makdPrintRecord (records) {
+      let that = this
+      return new Promise((resolve, reject) => {
+        this.$http({
+          url: this.$http.adornUrl('/generator/printrecord/makenow'),
+          method: 'post',
+          data: JSON.stringify({
+            'records': records
+          })
+        }).then(({ data }) => {
+          that.getDataList()
+          resolve(data)
+        })
+      })
     }
   }
 }
 </script>
+<style scoped>
+.popbox {
+  width: 700px;
+  height: 150px;
+  overflow: scroll;
+}
+</style>

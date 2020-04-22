@@ -9,7 +9,7 @@
              label-width="80px">
 
       <el-form-item style="display:inline-block"
-                    label="订单来源"
+                    label="店铺"
                     prop="originId">
         <remoteSelect v-if="visible"
                       :model="dataForm"

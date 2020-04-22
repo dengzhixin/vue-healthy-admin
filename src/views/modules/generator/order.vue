@@ -107,21 +107,17 @@
                 <div class="layout-row jscenter">
                   关联模板:{{d.filmName?d.filmName:'无'}}
                   数量：
-                  <el-popover v-if="d.number>1"
+                  <el-popover v-if="d.number>1 && d.filmName"
                               placement="top-start"
                               width="200"
                               trigger="hover">
                     <el-tag slot="reference">{{d.number}}</el-tag>
                     <el-button type="text"
                                @click="splitOrderDetail(d)">拆分</el-button>
+
                   </el-popover>
                   <el-tag v-else>{{d.number}}</el-tag>
 
-                  <!-- <template>
-                <br />
-                <a href="#"
-                   @click.prevent="redo(scope,index,d.id)"><i class="el-icon-refresh"></i>重做</a>
-              </template> -->
                 </div>
                 <el-popover placement="top-start"
                             width="200"
@@ -143,6 +139,11 @@
                     <br />
                     <a href="#"
                        @click.prevent="edit(scope.row,index,d.id)"><i class="el-icon-refresh"></i>修改</a>
+                  </template>
+                  <template v-if="d.status==4 && d.printUrl">
+                    <br />
+                    <a href="#"
+                       @click.prevent="redo(scope,index,d.id)"><i class="el-icon-refresh"></i>重做</a>
                   </template>
                 </el-popover>
               </div>
@@ -372,14 +373,22 @@ export default {
       })
     },
     redo (row, index, id) {
-      this.dataListLoading = true
+      let loading = this.$loading({
+        lock: true,
+        text: '制作发送重做请求',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      })
       this.$http({
         url: this.$http.adornUrl(`/generator/orderdetail/redo/${id}`),
         method: 'put'
       }).then(({ data }) => {
-        console.log(data)
         this.getDataList()
       })
+      setTimeout(() => {
+        loading.close()
+        this.getDataList()
+      }, 1000)
     },
     // 获取数据列表
     getDataList (map) {

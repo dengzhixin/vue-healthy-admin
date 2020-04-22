@@ -18,6 +18,11 @@ let printRecordStatus = {
     text: '已导出',
     value: 3,
     type: 'success'
+  },
+  '4': {
+    text: '生成中',
+    value: 4,
+    type: 'success'
   }
 }
 export default printRecordStatus

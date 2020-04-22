@@ -235,10 +235,9 @@ export default {
     dataFormSubmit () {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
-          alert(valid)
-          if (this.dataForm.status >= 3) {
-            this.dataForm.status = 2
-          }
+          // if (this.dataForm.status >= 3) {
+          //   this.dataForm.status = 2
+          // }
           this.$http({
             url: this.$http.adornUrl(`/generator/orderdetail/${!this.dataForm.id ? 'save' : 'update'}`),
             method: 'post',

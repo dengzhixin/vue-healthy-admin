@@ -1,6 +1,9 @@
 <template>
   <div class="mod-home">
     <h3>欢迎使用</h3>
+    <h4><a target="_bank"
+         href="https://www.processon.com/view/link/5e9bc5f4f346fb4bdd768f4c">使用手册</a></h4>
+
     <!-- <ul>
       <li>renren-fast-vue基于vue、element-ui构建开发，实现<a href="https://gitee.com/renrenio/renren-fast"
            target="_blank">renren-fast</a>后台管理前端功能，提供一套更优的前端解决方案</li>

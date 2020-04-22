@@ -77,9 +77,11 @@ import {
   Message,
   Notification,
   Divider,
-  Link
+  Link,
+  Image
 } from 'element-ui'
 
+Vue.use(Image)
 Vue.use(Link)
 Vue.use(Pagination)
 Vue.use(Dialog)
