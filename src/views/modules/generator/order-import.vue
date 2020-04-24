@@ -22,6 +22,7 @@
       <el-upload style="display:inline-block"
                  ref="upload"
                  action="#"
+                 accept=".xlsx"
                  :multiple="false"
                  :show-file-list="false"
                  :on-change="importOrders"
@@ -81,6 +82,7 @@ export default {
     importOrders (file, fileList) {
       this.orders = []
       this.failImportList = []
+      let that = this
       readWorkbookFromLocalFile(file.raw, (workbook) => {
         let orders = []
         let maxLine = 0
@@ -100,7 +102,7 @@ export default {
               // orders.push({ exCode, buyerMsg, sellerMsg, originId: 1, orderCreateTime, payTime, status })
               orders.push({ exCode, originId: 1 })
             } catch (e) {
-              this.$alert('请选择淘宝订单格式的表格')
+              that.$alert('请选择淘宝订单格式的表格')
             }
           }
         }
@@ -113,13 +115,13 @@ export default {
           let data = e.target.result
           let workbook
           try {
-            workbook = XLSX.read(data, { type: 'binary' })
+            workbook = XLSX.read(data, { type: 'binary', password: 123 })
             if (callback) callback(workbook)
           } catch (e) {
             // let password = prompt('输入密码')
             // alert(password)
             // workbook = XLSX.read(data, { type: 'binary', password })
-            this.$alert('未知错误')
+            that.$alert('打开失败，若文件已加密，请先解密')
           }
         }
         reader.readAsBinaryString(file)
@@ -127,7 +129,11 @@ export default {
     },
     dataFormSubmit () {
       if (this.dataForm.originId === undefined) {
-        this.$message('请先选择订单来源')
+        this.$message('请先选择店铺')
+        return
+      }
+      if (this.orders == null || this.orders.length === 0) {
+        this.$message('请先上传订单')
         return
       }
       let loading = this.$loading({

@@ -3,6 +3,7 @@
     <el-select v-model="model[fild]"
                :multiple="multiple"
                :clearable="clearable"
+               :disabled="disabled"
                filterable
                remote
                placeholder="选择或输入关键字"
@@ -32,6 +33,10 @@ export default {
       default: false
     },
     clearable: {
+      type: Boolean,
+      default: false
+    },
+    disabled: {
       type: Boolean,
       default: false
     }

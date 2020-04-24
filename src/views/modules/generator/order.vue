@@ -62,18 +62,25 @@
       </el-form-item>
     </el-form>
     <div>
+      <el-button v-if="isAuth('generator:order:manualCreate')"
+                 type="primary"
+                 @click="addOrUpdateHandle(null,1)">新建订单</el-button>
       <el-button v-if="isAuth('generator:order:save')"
                  type="primary"
-                 @click="addOrUpdateHandle()">引入订单</el-button>
-      <el-button v-if="isAuth('generator:order:save')"
+                 @click="addOrUpdateHandle(null,0)">引入订单</el-button>
+      <el-button v-if="isAuth('generator:order:import')"
                  type="primary"
-                 @click="importHandle()">批量导入订单</el-button>
-
+                 @click="importHandle()">导入订单</el-button>
+      <el-button v-if="isAuth('generator:order:syncOrderStatus')"
+                 type="primary"
+                 @click="syncHandle()"
+                 :disabled="dataListSelections.length <= 0">批量同步订单状态</el-button>
       <el-button v-if="isAuth('generator:order:delete')"
                  type="danger"
                  @click="deleteHandle()"
                  :disabled="dataListSelections.length <= 0">批量删除
       </el-button>
+
     </div>
     <br />
     <el-table :data="dataList"
@@ -99,11 +106,15 @@
           <div v-for="(d,index) in scope.row.list"
                :key="index">
             <div class="layout-row od">
-              <img class="odImg"
+              <img v-if="d.picPath"
+                   class="odImg"
                    :src="d.picPath">
+              <i v-else
+                 class="el-icon-picture-outline odImg"></i>
+
               <div class="layout-col">
-                {{d.title}}<br />
-                {{d.skuName}}<br />
+                <template v-if="d.title"> {{d.title}}<br /></template>
+                <template v-if="d.skuName"> {{d.skuName}}<br /></template>
                 <div class="layout-row jscenter">
                   关联模板:{{d.filmName?d.filmName:'无'}}
                   数量：
@@ -120,8 +131,16 @@
 
                 </div>
                 <el-popover placement="top-start"
-                            width="200"
+                            width="400"
                             trigger="hover">
+                  <el-steps :active="stepActive(scope.row.status,d.status)"
+                            simple
+                            :process-status="stepStatus(scope.row.status,d.status)">
+                    <el-step title="付款"></el-step>
+                    <el-step title="预处理"></el-step>
+                    <el-step title="打印"></el-step>
+                    <el-step title="制作"></el-step>
+                  </el-steps>
 
                   <el-tag v-if="scope.row.status!=1"
                           slot="reference"
@@ -138,13 +157,14 @@
                   <template>
                     <br />
                     <a href="#"
-                       @click.prevent="edit(scope.row,index,d.id)"><i class="el-icon-refresh"></i>修改</a>
+                       @click.prevent="edit(scope.row,index,d.id)"><i class="el-icon-edit-outline"></i>修改</a>
                   </template>
                   <template v-if="d.status==4 && d.printUrl">
                     <br />
                     <a href="#"
                        @click.prevent="redo(scope,index,d.id)"><i class="el-icon-refresh"></i>重做</a>
                   </template>
+
                 </el-popover>
               </div>
             </div>
@@ -161,14 +181,14 @@
                        width="100"
                        label="买家">
         <template slot-scope="scope">
+          {{scope.row.buyerNick}}
           <el-tooltip class="item"
                       effect="dark"
                       :content="scope.row.buyerNick"
                       placement="bottom">
             <a target="_blank"
                :href="'http://www.taobao.com/webww/ww.php?ver=3&touid='+scope.row.buyerNick+'&siteid=cntaobao&status=1&charset=utf-8'"><img border="0"
-                   :src="'http://amos.alicdn.com/realonline.aw?v=2&uid='+scope.row.buyerNick+'&site=cntaobao&s=1&charset=utf-8'"
-                   alt="点击这里给我发消息">
+                   :src="'http://amos.alicdn.com/realonline.aw?v=2&uid='+scope.row.buyerNick+'&site=cntaobao&s=1&charset=utf-8'">
             </a>
           </el-tooltip>
 
@@ -211,6 +231,13 @@
                        header-align="center"
                        align="center"
                        label="系统备注">
+        <template slot-scope="scope">
+          {{scope.row.remarks}}
+          <el-button type="text"
+                     size="small"
+                     @click="addOrUpdateHandle(scope.row.id)">编辑</el-button>
+        </template>
+
       </el-table-column>
       <el-table-column prop="orderCreateTime"
                        header-align="center"
@@ -232,6 +259,12 @@
                        header-align="center"
                        align="center"
                        label="店铺">
+      </el-table-column>
+      <el-table-column prop="type"
+                       header-align="center"
+                       align="center"
+                       label="订单类型">
+        <template slot-scope="scope">{{scope.row.type===0?'平台':'人工'}}</template>
       </el-table-column>
       <!-- <el-table-column fixed="right"
                        header-align="center"
@@ -325,7 +358,53 @@ export default {
     this.getDataList()
   },
   computed: {
-
+    stepActive (ostatus, status) {
+      return function (ostatus, status) {
+        if (ostatus === 1) {
+          return 0
+        }
+        switch (status) {
+          case 8:
+            return 0
+          case 1:
+          case 2:
+          case 5:
+          case 6:
+          case 7:
+          case 10:
+            return 1
+          case 3:
+            return 2
+          case 9:
+            return 3
+          case 4:
+            return 4
+        }
+      }
+    },
+    stepStatus (ostatus, status) {
+      return function (ostatus, status) {
+        if (ostatus === 1) {
+          return 'error'
+        }
+        switch (status) {
+          case 1:
+          case 2:
+            return 'wait'
+          case 5:
+          case 6:
+          case 7:
+          case 8:
+            return 'error'
+          case 9:
+          case 3:
+          case 10:
+            return 'process'
+          case 4:
+            return 'success'
+        }
+      }
+    }
   },
   methods: {
     originIdChange (value) {
@@ -452,10 +531,10 @@ export default {
         this.$refs.orderImport.init()
       })
     },
-    addOrUpdateHandle (id) {
+    addOrUpdateHandle (id, type) {
       this.addOrUpdateVisible = true
       this.$nextTick(() => {
-        this.$refs.addOrUpdate.init(id)
+        this.$refs.addOrUpdate.init(id, type)
       })
     },
     // 删除
@@ -487,6 +566,38 @@ export default {
           }
         })
       })
+    },
+    syncHandle (id) {
+      let loading = this.$loading({
+        lock: true,
+        text: '订单状态正在同步中',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      })
+
+      var ids = id ? [id] : this.dataListSelections.map(item => {
+        return item.id
+      })
+
+      this.$http({
+        url: this.$http.adornUrl('/generator/order/syncOrderStatus'),
+        method: 'post',
+        data: this.$http.adornData(ids, false)
+      }).then(({ data }) => {
+        loading.close()
+        if (data && data.code === 0) {
+          this.$message({
+            message: '操作成功',
+            type: 'success',
+            duration: 1500,
+            onClose: () => {
+              this.getDataList()
+            }
+          })
+        } else {
+          this.$message.error(data.msg)
+        }
+      })
     }
   }
 }
@@ -496,5 +607,6 @@ export default {
   width: 80px;
   height: 80px;
   margin-right: 10px;
+  font-size: 80px;
 }
 </style>

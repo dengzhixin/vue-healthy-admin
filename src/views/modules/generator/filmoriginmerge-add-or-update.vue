@@ -2,10 +2,14 @@
   <el-dialog :title="!dataForm.id ? '新增' : '修改'"
              :close-on-click-modal="false"
              :visible.sync="visible">
+    <el-alert title="请勿在同一个店铺将同一个标识关联到不同的制作模板"
+              :closable="false"
+              type="warning">
+    </el-alert>
+    <p></p>
     <el-form :model="dataForm"
              :rules="dataRule"
              ref="dataForm"
-             @keyup.enter.native="dataFormSubmit()"
              label-width="80px">
       <el-form-item label="店铺"
                     prop="originId">
@@ -17,12 +21,24 @@
                       @change="originIdChange">
         </remoteSelect>
       </el-form-item>
-      <el-form-item label="胶卷标识"
+      <el-form-item label="标识"
                     prop="marker">
-        <el-input v-model="dataForm.marker"
-                  placeholder="胶卷标识"></el-input>
+        <el-select v-model="dataForm.marker"
+                   multiple
+                   filterable
+                   allow-create
+                   default-first-option
+                   no-data-text="输入标识按回车即可">
+          <el-option v-for="item in []"
+                     :key="item.value"
+                     :label="item.label"
+                     :value="item.value">
+          </el-option>
+        </el-select>
+        <!-- <el-input v-model="dataForm.marker"
+                  placeholder="胶卷标识"></el-input> -->
       </el-form-item>
-      <el-form-item label="胶卷模板"
+      <el-form-item label="模板"
                     prop="filmId">
         <remoteSelect :model="dataForm"
                       fild="filmId"
@@ -111,7 +127,7 @@ export default {
           }).then(({ data }) => {
             if (data && data.code === 0) {
               this.dataForm.originId = data.filmOriginMerge.originId
-              this.dataForm.marker = data.filmOriginMerge.marker
+              this.dataForm.marker = data.filmOriginMerge.marker.split(',')
               this.dataForm.filmId = data.filmOriginMerge.filmId
             }
           })
@@ -128,7 +144,7 @@ export default {
             data: this.$http.adornData({
               'id': this.dataForm.id || undefined,
               'originId': this.dataForm.originId,
-              'marker': this.dataForm.marker,
+              'marker': this.dataForm.marker.join(','),
               'filmId': this.dataForm.filmId
             })
           }).then(({ data }) => {

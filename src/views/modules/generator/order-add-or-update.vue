@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :title="!dataForm.id ? '新增' : '修改'"
+  <el-dialog :title="!dataForm.id ? (dataForm.type==1?'新建订单':'引入订单'): '修改'"
              :close-on-click-modal="false"
              :visible.sync="visible">
 
@@ -8,16 +8,24 @@
              ref="dataForm"
              @keyup.enter.native="dataFormSubmit()"
              label-width="80px">
-
-      <el-form-item label="外部订单编号"
-                    prop="exCode">
+      <el-form-item v-if="dataForm.id"
+                    label="系统编号"
+                    prop="code">
+        <el-input :disabled="true"
+                  v-model="dataForm.code"
+                  placeholder="系统编号"></el-input>
+      </el-form-item>
+      <el-form-item label="订单号"
+                    prop="exCode"
+                    v-if="!(!dataForm.id && dataForm.type==1)">
         <el-input :disabled="dataForm.id?true:false"
                   v-model="dataForm.exCode"
-                  placeholder="外部订单编号"></el-input>
+                  placeholder="订单号"></el-input>
       </el-form-item>
-      <el-form-item label="来源地"
+      <el-form-item label="店铺"
                     prop="originId">
         <remoteSelect v-if="visible"
+                      :disabled="dataForm.id?true:false"
                       :model="dataForm"
                       type="origin"
                       fild="originId"
@@ -25,12 +33,7 @@
                       value="id"
                       @change="originIdChange"></remoteSelect>
       </el-form-item>
-      <!-- <el-form-item v-if="!dataForm.id"
-                    label="买家留言"
-                    prop="buyerMsg">
-        <el-input v-model="dataForm.buyerMsg"
-                  placeholder="买家留言"></el-input>
-      </el-form-item> -->
+
       <!-- <el-form-item label="卖家留言"
                     prop="sellerMsg">
         <el-input v-model="dataForm.sellerMsg"
@@ -41,70 +44,93 @@
         <el-input v-model="dataForm.remarks"
                   placeholder="系统备注"></el-input>
       </el-form-item>
-      <!-- <span>可选操作：</span>
-      <el-button style="display:inline-block"
-                 @click="addFilm">添加胶卷</el-button>
-      <el-upload style="display:inline-block"
-                 action="#"
-                 :on-change="uploadImgsZip"
-                 :show-file-list="false"
-                 :auto-upload="false">
-        <el-button slot="trigger"
-                   type="primary">添加胶卷包</el-button>
+      <el-form-item v-if="dataForm.type==1"
+                    label="买家昵称"
+                    prop="buyerNick">
+        <el-input v-model="dataForm.buyerNick"
+                  placeholder="买家昵称"></el-input>
+      </el-form-item>
+      <template v-if="dataForm.type==1">
+        <el-form-item label="操作："
+                      prop="remarks">
+          <el-button style="display:inline-block"
+                     @click="addFilm">添加定制品</el-button>
+          <el-upload style="display:inline-block"
+                     action="#"
+                     accept="application/zip"
+                     :on-change="uploadImgsZip"
+                     :multiple="true"
+                     :show-file-list="false"
+                     :auto-upload="false">
+            <el-button slot="trigger"
+                       type="primary">上传定制包</el-button>
 
-      </el-upload>
-      <div class="divider"></div>
-      <el-form :model="orderDetail"
-               class=""
-               :ref="'orderDetailList'+index"
-               label-width="80px"
-               v-for="(orderDetail,index) in orderDetailList"
-               :key="'orderDetail'+index">
-        <i class="icon el-icon-delete"
-           @click="deleteOrderDetail(index,orderDetail.id)"></i>
-        <el-form-item style="display:inline-block"
-                      label="胶卷模板"
-                      prop="filmId">
-          <remoteSelect :model="orderDetail"
-                        type="film"
-                        fild="filmId"
-                        label="name"
-                        value="id"
-                        :index="index"
-                        @change="filmIdChange"></remoteSelect>
-
+          </el-upload>
         </el-form-item>
-        <div>
-          <vuedraggable class="imgs"
-                        v-model="orderDetail.imgs">
-            <div class="img"
-                 v-for="(img,imgIndex) in orderDetail.imgs"
-                 :key="img.url">
-              <img :src="img.url +'?x-oss-process=style/200x'"
-                   :style="'transform:rotate('+90*img.angle+'deg)'"
-                   alt="">
+        <div class="divider"></div>
+        <el-form :model="orderDetail"
+                 :rules="dataRule"
+                 class=""
+                 :ref="'orderDetailList'+index"
+                 label-width="80px"
+                 v-for="(orderDetail,index) in orderDetailList"
+                 :key="'orderDetail'+index">
+          <i class="icon el-icon-delete"
+             @click="deleteOrderDetail(index,orderDetail.id)"></i>
 
-              <span>
-                {{imgIndex+1}}
-                <i class="icon el-icon-caret-right"
-                   @click="setImgAngle(index,imgIndex)"
-                   title="旋转"></i>
-                <i class="icon el-icon-delete"
-                   title="删除"
-                   @click="deleteImg(index,imgIndex)"></i>
-              </span>
+          <el-form-item label="制作模板"
+                        style="display:inline-block"
+                        prop="filmId">
+            <remoteSelect :model="orderDetail"
+                          type="film"
+                          fild="filmId"
+                          label="name"
+                          value="id"
+                          :index="index"
+                          @change="filmIdChange"></remoteSelect>
 
-            </div>
-            <uploadImageCard slot="footer"
-                             type="button"
-                             buttonText="上传图片"
-                             :index="index"
-                             @uploadSuccess="getNewImg"></uploadImageCard>
+          </el-form-item>
+          <el-form-item label="数量"
+                        prop="number"
+                        style="display:inline-block">
 
-          </vuedraggable>
-        </div>
+            <el-input-number v-model="orderDetail.number"
+                             :min="1"></el-input-number>
+          </el-form-item>
 
-      </el-form> -->
+          <div>
+            <vuedraggable class="imgs"
+                          v-model="orderDetail.imgs">
+              <div class="img"
+                   v-for="(img,imgIndex) in orderDetail.imgs"
+                   :key="img.url">
+                <img :src="img.url +'?x-oss-process=style/200x'"
+                     :style="'transform:rotate('+90*img.angle+'deg)'"
+                     alt="">
+
+                <span>
+                  {{imgIndex+1}}
+                  <i class="icon el-icon-caret-right"
+                     @click="setImgAngle(index,imgIndex)"
+                     title="旋转"></i>
+                  <i class="icon el-icon-delete"
+                     title="删除"
+                     @click="deleteImg(index,imgIndex)"></i>
+                </span>
+
+              </div>
+              <uploadImageCard slot="footer"
+                               type="button"
+                               buttonText="上传图片"
+                               :index="index"
+                               :multiple="true"
+                               @uploadSuccess="getNewImg"></uploadImageCard>
+
+            </vuedraggable>
+          </div>
+
+        </el-form>
+      </template>
 
       <!-- <el-upload :action="url"
                  :multiple="false"
@@ -125,10 +151,9 @@
 
 <script>
 import remoteSelect from '../../common/remoteSelect'
-import JsZip from 'jszip'
 import vuedraggable from 'vuedraggable'
 import uploadImageCard from '../../common/uploadImageCard'
-
+import uploadImgsZip from '@/utils/uploadImgsZip.js'
 export default {
   components: {
     remoteSelect, vuedraggable, uploadImageCard
@@ -143,6 +168,7 @@ export default {
         exCode: '',
         originId: undefined,
         buyerMsg: '',
+        buyerNick: '',
         sellerMsg: '',
         orderCreateTime: '',
         payTime: '',
@@ -153,13 +179,19 @@ export default {
       orderDetailList: [],
       dataRule: {
         code: [
-          { required: true, message: '系统内部订单编号不能为空', trigger: 'blur' }
+          { required: true, message: '系统编号不能为空', trigger: 'blur' }
         ],
         exCode: [
-          { required: true, message: '外部订单编号不能为空', trigger: 'blur' }
+          { required: true, message: '订单号不能为空', trigger: 'blur' }
         ],
         originId: [
-          { required: true, message: '来源地id不能为空', trigger: 'blur' }
+          { required: true, message: '店铺不能为空', trigger: 'blur' }
+        ],
+        filmId: [
+          { required: true, message: '制作模板不能为空', trigger: 'blur' }
+        ],
+        buyerNick: [
+          { required: true, message: '买家不能为空', trigger: 'blur' }
         ]
 
       },
@@ -174,7 +206,8 @@ export default {
       console.log(response)
       this.orderDetailList[response.index].imgs.push({
         url: response.url,
-        number: 1
+        number: 1,
+        title: ''
       })
     },
     deleteImg (index, imgIndex) {
@@ -189,7 +222,8 @@ export default {
     addFilm () {
       this.orderDetailList.splice(0, 0, {
         filmId: undefined,
-        imgs: []
+        imgs: [],
+        number: 1
       })
     },
     deleteOrderDetail (index, id) {
@@ -227,76 +261,20 @@ export default {
       })
     },
     uploadImgsZip (zip) {
-      let that = this
-      var zipUtil = new JsZip()
-      let imgFiles = []
-      zipUtil.loadAsync(zip.raw)
-        .then(function (zfile) {
-          let fileNum = Object.keys(zipUtil.files).length
-          Object.keys(zipUtil.files).forEach((key) => {
-            let file = zfile.files[key]
-            console.log(file)
-            if (file.dir === false) {
-              let name = file.name
-              let ff = zipUtil.file(name)
-              ff.async('base64').then((base64) => {
-                base64 = 'data:image/png;base64,' + base64
-                // console.log(base64)
-                console.log(base64)
-                let f = that.dataURLtoFile(base64, name)
-                imgFiles.push(f)
-                fileNum -= 1
-                if (fileNum === 0) {
-                  that.requestUploadFiles(imgFiles)
-                }
-              })
-            } else {
-              fileNum -= 1
-            }
-
-            //   // var base64 = this.arrayBufferToBase64(buffer)
-            //   // console.log(base64)
-          })
-          console.log(imgFiles)
-        })
-    },
-    requestUploadFiles (files) {
-      let param = new FormData() // 创建form对象
-      files.forEach((f) => {
-        param.append('files', f)// 通过append向form对象添加数据
+      uploadImgsZip(zip.raw, this).then((imgs) => {
+        this.orderDetailList.push({ imgs: imgs, number: 1 })
       })
-      let config = {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      } // 添加请求头
-      this.$http.post(this.$http.adornUrl(`/sys/oss/uploads`), param, config)
-        .then(({ data }) => {
-          // orderDetailList
-          let imgs = data.urls.map((u) => {
-            return { number: 1, url: u, angle: 0 }
-          })
+    },
 
-          this.orderDetailList.push({ imgs: imgs })
-        })
-    },
-    dataURLtoFile (dataurl, filename) {
-      let arr = dataurl.split(',')
-      let mime = arr[0].match(/:(.*?);/)[1]
-      let bstr = atob(arr[1])
-      let n = bstr.length
-      let u8arr = new Uint8Array(n)
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n)
-      }
-      return new File([u8arr], filename, { type: mime })
-    },
     filmIdChange (value, index) {
       this.orderDetailList[index].filmId = value
     },
     originIdChange (value) {
       this.dataForm.originId = value
     },
-    init (id) {
+    init (id, type) {
       this.dataForm.id = id || 0
+      this.dataForm.type = type
       this.visible = true
       this.orderDetailList = []
       this.$nextTick(() => {
@@ -344,16 +322,34 @@ export default {
         this.$message('制作模板或图片不能为空')
         return
       }
+      // 人工创建订单
+      if (this.dataForm.type === 1 && this.orderDetailList.length === 0) {
+        this.$message('订制品不能为空哦')
+        return
+      }
       let loading = this.$loading({
         lock: true,
-        text: '引入中',
+        text: this.dataForm.type === 0 ? '引入中' : '创建中',
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })
+      let url = '/generator/order/'
+      if (!this.dataForm.id) {
+        switch (this.dataForm.type) {
+          case 0:
+            url += 'save'
+            break
+          case 1:
+            url += 'manualCreate'
+            break
+        }
+      } else {
+        url += 'update'
+      }
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           this.$http({
-            url: this.$http.adornUrl(`/generator/order/${!this.dataForm.id ? 'save' : 'update'}`),
+            url: this.$http.adornUrl(url),
             method: 'post',
             data: this.$http.adornData(
               {
@@ -362,12 +358,19 @@ export default {
                 'exCode': this.dataForm.exCode,
                 'originId': this.dataForm.originId,
                 'buyerMsg': this.dataForm.buyerMsg,
+                'buyerNick': this.dataForm.buyerNick,
                 'sellerMsg': this.dataForm.sellerMsg,
                 'orderCreateTime': this.dataForm.orderCreateTime,
                 'payTime': this.dataForm.payTime,
                 'createTime': this.dataForm.createTime,
                 'status': this.dataForm.status,
-                'remarks': this.dataForm.remarks
+                'remarks': this.dataForm.remarks,
+                'list': this.orderDetailList.map((od) => {
+                  let obj = JSON.stringify(od)
+                  let clone = JSON.parse(obj)
+                  clone.imgs = JSON.stringify(clone.imgs)
+                  return clone
+                })
               }
 
             )

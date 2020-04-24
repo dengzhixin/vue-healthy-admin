@@ -10,7 +10,7 @@ let orderDetailStatus = {
     type: 'warning'
   },
   '2': {
-    text: '待合并',
+    text: '待预处理',
     value: 2,
     type: 'info'
   },
@@ -50,8 +50,8 @@ let orderDetailStatus = {
     type: 'success'
   },
   '10': {
-    text: '合并中',
-    value: 9,
+    text: '预处理中',
+    value: 10,
     type: 'success'
   }
 }

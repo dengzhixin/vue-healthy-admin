@@ -37,17 +37,17 @@
       <el-table-column prop="originName"
                        header-align="center"
                        align="center"
-                       label="来源地">
+                       label="店铺">
       </el-table-column>
       <el-table-column prop="marker"
                        header-align="center"
                        align="center"
-                       label="胶卷标识">
+                       label="标识">
       </el-table-column>
       <el-table-column prop="filmName"
                        header-align="center"
                        align="center"
-                       label="关联胶卷模板">
+                       label="关联制作模板">
       </el-table-column>
       <el-table-column fixed="right"
                        header-align="center"

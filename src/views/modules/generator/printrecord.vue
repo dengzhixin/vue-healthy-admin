@@ -35,7 +35,8 @@
       <el-form-item>
         <el-button @click="search()">查询</el-button>
         <el-button type="primary"
-                   @click="download">批量下载</el-button>
+                   @click="download"
+                   :disabled="dataListSelections.length <= 0">批量下载</el-button>
         <!-- <el-button v-if="isAuth('generator:printrecord:download')"
                    type="primary"
                    @click="loadPrint">下载所有可打印文件</el-button> -->
@@ -78,6 +79,7 @@
 
       <el-table-column header-align="center"
                        align="center"
+                       width="200"
                        label="详情">
         <template slot-scope="scope">
           <div v-for="(item,index) in scope.row.orderDetailList"
@@ -90,10 +92,12 @@
                 <img style="height: 100px"
                      :src="item.printUrl+'?x-oss-process=style/h150'" />
               </div>
+              <div slot="reference"
+                   class="layout-row pointer">
 
-              <el-tag slot="reference"><a :href="item.printUrl+'?x-oss-process=style/h150'"
-                   target="_blank"
-                   rel="noopener noreferrer">{{item.excode}}</a></el-tag>
+                <el-tag @click="copyExcode(item.excode)">{{item.excode}}</el-tag>
+              </div>
+
             </el-popover>
 
           </div>
@@ -150,7 +154,7 @@
                      type="text"
                      size="small"
                      @click="downloadHandle(scope.row)">下载</el-button>
-          <el-button v-else
+          <el-button v-if="scope.row.status==0"
                      type="text"
                      size="small"
                      @click="makeHandle(scope.row)">立即生成打印文件</el-button>
@@ -209,6 +213,18 @@ export default {
     this.getDataList()
   },
   methods: {
+    copyExcode (excode) {
+      if (document.execCommand('copy')) {
+        const input = document.createElement('input')
+        document.body.appendChild(input)
+        input.setAttribute('value', excode)
+        input.select()
+        document.execCommand('copy')
+        this.$message.success('已经复制' + excode)
+      } else {
+        this.$message.error('浏览器不支持复制')
+      }
+    },
     makeHandle (row) {
       this.makdPrintRecord([row])
       setTimeout(() => {

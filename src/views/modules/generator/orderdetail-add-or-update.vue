@@ -4,7 +4,7 @@
              :visible.sync="visible">
 
     <template v-if="dataForm.id">
-      <el-alert title="若胶卷已经制作，修改后会自动重做，若非必要，请勿随意修改"
+      <el-alert title="修改后会自动重做，若非必要，请勿随意修改"
                 :closable="false"
                 type="warning">
       </el-alert>
@@ -53,13 +53,15 @@
           </div>
           <uploadImageCard slot="footer"
                            type="button"
+                           :multiple="true"
                            buttonText="上传图片"
                            @uploadSuccess="getNewImg"></uploadImageCard>
           <el-upload v-if="dataForm.imgs==null ||dataForm.imgs.length==0"
-                     :action="url"
-                     :multiple="false"
-                     :on-success="uploadImgsZip"
-                     :show-file-list="false">
+                     style="display:inline-block"
+                     action="#"
+                     :on-change="uploadImgsZip"
+                     :show-file-list="false"
+                     :auto-upload="false">
             <el-button slot="trigger"
                        type="primary">上传图片压缩包</el-button>
           </el-upload>
@@ -72,16 +74,18 @@
           class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary"
-                 @click="dataFormSubmit()">确定</el-button>
+                 @click="dataFormSubmit(false)">暂时保存</el-button>
+      <el-button type="primary"
+                 @click="dataFormSubmit(true)">确定</el-button>
     </span>
   </el-dialog>
 </template>
 
 <script>
 import remoteSelect from '../../common/remoteSelect'
-import JsZip from 'jszip'
 import vuedraggable from 'vuedraggable'
 import uploadImageCard from '../../common/uploadImageCard'
+import uploadImgsZip from '@/utils/uploadImgsZip.js'
 
 export default {
   components: {
@@ -135,56 +139,15 @@ export default {
   },
   methods: {
     uploadImgsZip (zip) {
-      let that = this
-      var zipUtil = new JsZip()
-      let imgFiles = []
-      zipUtil.loadAsync(zip.raw)
-        .then(function (zfile) {
-          let fileNum = Object.keys(zipUtil.files).length
-          Object.keys(zipUtil.files).forEach((key) => {
-            let file = zfile.files[key]
-            console.log(file)
-            if (file.dir === false) {
-              let name = file.name
-              let ff = zipUtil.file(name)
-              ff.async('base64').then((base64) => {
-                base64 = 'data:image/png;base64,' + base64
-                // console.log(base64)
-                console.log(base64)
-                let f = that.dataURLtoFile(base64, name)
-                imgFiles.push(f)
-                fileNum -= 1
-                if (fileNum === 0) {
-                  that.requestUploadFiles(imgFiles)
-                }
-              })
-            } else {
-              fileNum -= 1
-            }
+      console.log(zip)
+      uploadImgsZip(zip.raw, this).then((imgs) => {
+        if (this.dataForm.imgs == null) {
+          this.dataForm.imgs = []
+        }
+        this.dataForm.imgs = this.dataForm.imgs.concat(imgs)
 
-            //   // var base64 = this.arrayBufferToBase64(buffer)
-            //   // console.log(base64)
-          })
-          console.log(imgFiles)
-        })
-    },
-    requestUploadFiles (files) {
-      let param = new FormData() // 创建form对象
-      files.forEach((f) => {
-        param.append('files', f)// 通过append向form对象添加数据
+        this.$forceUpdate()
       })
-      let config = {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      } // 添加请求头
-      this.$http.post(this.$http.adornUrl(`/sys/oss/uploads`), param, config)
-        .then(({ data }) => {
-          // orderDetailList
-          let imgs = data.urls.map((u) => {
-            return { number: 1, url: u, angle: 0 }
-          })
-
-          this.dataForm.imgs.concat(imgs)
-        })
     },
     deleteImg (imgIndex) {
       this.dataForm.imgs.splice(imgIndex, 1)
@@ -232,14 +195,14 @@ export default {
       })
     },
     // 表单提交
-    dataFormSubmit () {
+    dataFormSubmit (redonow) {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           // if (this.dataForm.status >= 3) {
           //   this.dataForm.status = 2
           // }
           this.$http({
-            url: this.$http.adornUrl(`/generator/orderdetail/${!this.dataForm.id ? 'save' : 'update'}`),
+            url: this.$http.adornUrl(`/generator/orderdetail/${!this.dataForm.id ? 'save' : 'update'}` + (!this.dataForm.id ? '' : '/' + redonow)),
             method: 'post',
             data: this.$http.adornData({
               'id': this.dataForm.id || undefined,

@@ -1,7 +1,9 @@
 <template>
   <div class=''>
     <el-upload :drag="type=='drag'?true:false"
+               :multiple="multiple"
                :action="url"
+               accept="image/gif,image/png,image/jped,image/jpg"
                :before-upload="beforeUploadHandle"
                :on-success="successHandle"
                :show-file-list="false"
@@ -19,7 +21,9 @@
              slot="tip">只支持jpg、png、gif格式的图片！</div>
       </template>
       <template v-else>
-        <el-button slot="trigger">{{buttonText}}</el-button>
+        <i slot="trigger"
+           class="iconfont">&#xe638;</i>
+        <!-- <el-button >{{buttonText}}</el-button> -->
       </template>
     </el-upload>
   </div>
@@ -45,6 +49,10 @@ export default {
     type: {
       type: String,
       default: 'drag'
+    },
+    multiple: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {},
