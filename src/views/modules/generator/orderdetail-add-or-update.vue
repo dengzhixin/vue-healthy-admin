@@ -4,7 +4,7 @@
              :visible.sync="visible">
 
     <template v-if="dataForm.id">
-      <el-alert title="修改后会自动重做，若非必要，请勿随意修改"
+      <el-alert title="确认修改后会自动重做，若还没有确认修改完成，请使用暂时保存功能"
                 :closable="false"
                 type="warning">
       </el-alert>

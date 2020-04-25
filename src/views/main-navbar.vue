@@ -5,9 +5,9 @@
       <h1 class="site-navbar__brand"
           @click="$router.push({ name: 'home' })">
         <a class="site-navbar__brand-lg"
-           href="javascript:;">胶卷流水线制作系统</a>
+           href="javascript:;">私定定制品生成系统</a>
         <a class="site-navbar__brand-mini"
-           href="javascript:;">胶卷</a>
+           href="javascript:;">私定</a>
       </h1>
     </div>
     <div class="site-navbar__body clearfix">

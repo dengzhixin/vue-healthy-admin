@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :title="!dataForm.id ? '新增' : '修改'"
+  <el-dialog :title="批量导入"
              :close-on-click-modal="false"
              :visible.sync="visible">
 
@@ -8,8 +8,7 @@
              @keyup.enter.native="dataFormSubmit()"
              label-width="80px">
 
-      <el-form-item style="display:inline-block"
-                    label="店铺"
+      <el-form-item label="店铺"
                     prop="originId">
         <remoteSelect v-if="visible"
                       :model="dataForm"
@@ -19,26 +18,56 @@
                       value="id"
                       @change="originIdChange"></remoteSelect>
       </el-form-item>
-      <el-upload style="display:inline-block"
-                 ref="upload"
-                 action="#"
-                 accept=".xlsx"
-                 :multiple="false"
-                 :show-file-list="false"
-                 :on-change="importOrders"
-                 :auto-upload="false">
-        <el-button slot="trigger"
-                   type="primary">选择订单excel表格</el-button>
+      <el-form-item label="统一设置卖家备注"
+                    prop="sellerMsg">
+        <el-input type="text"
+                  placeholder="请输入卖家备注，会同步到淘宝店"
+                  v-model="dataForm.sellerMsg">
+        </el-input>
+      </el-form-item>
 
-      </el-upload>
+      <el-collapse v-model="activeImportCol"
+                   accordion>
+        <el-collapse-item title="excel表格导入"
+                          name="excel">
+          <el-upload style="display:inline-block"
+                     ref="upload"
+                     action="#"
+                     accept=".xlsx"
+                     :multiple="false"
+                     :show-file-list="false"
+                     :on-change="importExcelOrders"
+                     :auto-upload="false">
+            <el-button slot="trigger">选择订单excel表格</el-button>
+
+          </el-upload>
+
+        </el-collapse-item>
+        <el-collapse-item title="手动输入"
+                          name="text">
+          <el-form-item label="订单号">
+            <el-input type="textarea"
+                      :autosize="{ minRows: 4}"
+                      clearable
+                      placeholder="请输入订单号，换行可以输入多个"
+                      v-model="inputOrderExcode">
+            </el-input>
+
+          </el-form-item>
+
+        </el-collapse-item>
+
+      </el-collapse>
+      <br />
+
+      <el-button type="primary"
+                 @click="dataFormSubmit()">导入</el-button>
+
       <span v-if="orders.length>0">一共{{orders.length}}个订单</span>
       <template v-if="failImportList.length>0">
         <p v-for="(item,index) in failImportList"
            :key="index">{{item.exCode}}已存在</p>
       </template>
-      <br />
-      <el-button type="primary"
-                 @click="dataFormSubmit()">导入</el-button>
 
     </el-form>
     <span slot="footer"
@@ -59,10 +88,13 @@ export default {
   },
   data () {
     return {
+      inputOrderExcode: '',
+      activeImportCol: 'excel',
       url: '',
       visible: false,
       dataForm: {
-        originId: undefined
+        originId: undefined,
+        sellerMsg: undefined
       },
       orders: [],
       failImportList: []
@@ -75,11 +107,14 @@ export default {
     init () {
       this.visible = true
       this.failImportList = []
+      this.orders = []
+      this.inputOrderExcode = undefined
+      this.dataForm.sellerMsg = undefined
     },
     originIdChange (value) {
       this.dataForm.originId = value
     },
-    importOrders (file, fileList) {
+    importExcelOrders (file, fileList) {
       this.orders = []
       this.failImportList = []
       let that = this
@@ -133,7 +168,7 @@ export default {
         return
       }
       if (this.orders == null || this.orders.length === 0) {
-        this.$message('请先上传订单')
+        this.$message('没有可以导入的订单')
         return
       }
       let loading = this.$loading({

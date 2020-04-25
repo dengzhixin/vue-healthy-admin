@@ -1,10 +1,19 @@
 <template>
   <div class="mod-config">
+
     <el-form :inline="true"
              :model="dataForm"
              label-position="left"
              label-width="100px"
              @keyup.enter.native="getDataList()">
+      <el-form-item label="订单号：">
+        <el-input v-model="dataForm.excode"
+                  clearable></el-input>
+      </el-form-item>
+      <el-form-item label="系统编号：">
+        <el-input v-model="dataForm.code"
+                  clearable></el-input>
+      </el-form-item>
       <el-form-item label="标题：">
         <el-input v-model="dataForm.title"
                   clearable></el-input>
@@ -21,14 +30,6 @@
       </el-form-item>
       <el-form-item label="颜色分类">
         <el-input v-model="dataForm.skuName"
-                  clearable></el-input>
-      </el-form-item>
-      <el-form-item label="系统编号：">
-        <el-input v-model="dataForm.code"
-                  clearable></el-input>
-      </el-form-item>
-      <el-form-item label="订单号：">
-        <el-input v-model="dataForm.excode"
                   clearable></el-input>
       </el-form-item>
 
@@ -100,8 +101,15 @@
                        align="center"
                        label="id">
       </el-table-column> -->
+      <el-table-column prop="exCode"
+                       header-align="center"
+                       align="center"
+                       width="170"
+                       label="订单号">
+
+      </el-table-column>
       <el-table-column label="详情"
-                       width="600">
+                       width="300">
         <template slot-scope="scope">
           <div v-for="(d,index) in scope.row.list"
                :key="index">
@@ -113,11 +121,13 @@
                  class="el-icon-picture-outline odImg"></i>
 
               <div class="layout-col">
-                <template v-if="d.title"> {{d.title}}<br /></template>
-                <template v-if="d.skuName"> {{d.skuName}}<br /></template>
+                <div class="linetext"
+                     v-if="d.title"> {{d.title}}<br /></div>
+                <div class="linetext"
+                     v-if="d.skuName"> {{d.skuName}}<br /></div>
                 <div class="layout-row jscenter">
-                  关联模板:{{d.filmName?d.filmName:'无'}}
-                  数量：
+                  模板:{{d.filmName?d.filmName:'无'}}
+                  数量:
                   <el-popover v-if="d.number>1 && d.filmName"
                               placement="top-start"
                               width="200"
@@ -182,15 +192,11 @@
                        label="买家">
         <template slot-scope="scope">
           {{scope.row.buyerNick}}
-          <el-tooltip class="item"
-                      effect="dark"
-                      :content="scope.row.buyerNick"
-                      placement="bottom">
-            <a target="_blank"
-               :href="'http://www.taobao.com/webww/ww.php?ver=3&touid='+scope.row.buyerNick+'&siteid=cntaobao&status=1&charset=utf-8'"><img border="0"
-                   :src="'http://amos.alicdn.com/realonline.aw?v=2&uid='+scope.row.buyerNick+'&site=cntaobao&s=1&charset=utf-8'">
-            </a>
-          </el-tooltip>
+
+          <a target="_blank"
+             :href="'http://www.taobao.com/webww/ww.php?ver=3&touid='+scope.row.buyerNick+'&siteid=cntaobao&status=1&charset=utf-8'"><img border="0"
+                 :src="'http://amos.alicdn.com/realonline.aw?v=2&uid='+scope.row.buyerNick+'&site=cntaobao&s=1&charset=utf-8'">
+          </a>
 
         </template>
       </el-table-column>
@@ -199,13 +205,6 @@
                        align="center"
                        label="系统编号"
                        width="200">
-      </el-table-column>
-      <el-table-column prop="exCode"
-                       header-align="center"
-                       align="center"
-                       width="200"
-                       label="订单号">
-
       </el-table-column>
 
       <!-- <el-table-column prop="status"
@@ -329,7 +328,7 @@ export default {
         code: '',
         excode: '',
         odStatus: '',
-        time: ['', ''],
+        time: null,
         title: '',
         skuName: '',
         originId: '',
@@ -390,14 +389,14 @@ export default {
         switch (status) {
           case 1:
           case 2:
+          case 9:
+          case 3:
             return 'wait'
           case 5:
           case 6:
           case 7:
           case 8:
             return 'error'
-          case 9:
-          case 3:
           case 10:
             return 'process'
           case 4:
@@ -485,8 +484,8 @@ export default {
           'title': this.dataForm.title,
           'skuName': this.dataForm.skuName,
           'buyerNick': this.dataForm.buyerNick,
-          'timeStart': this.dataForm.time[0] === '' ? '' : this.dataForm.time[0].Format('yyyy-MM-dd hh:mm:ss'),
-          'timeEnd': this.dataForm.time[1] === '' ? '' : this.dataForm.time[1].Format('yyyy-MM-dd hh:mm:ss')
+          'timeStart': !this.dataForm.time ? '' : this.dataForm.time[0].Format('yyyy-MM-dd hh:mm:ss'),
+          'timeEnd': !this.dataForm.time ? '' : this.dataForm.time[1].Format('yyyy-MM-dd hh:mm:ss')
         })
       }).then(({ data }) => {
         if (data && data.code === 0) {
@@ -604,9 +603,15 @@ export default {
 </script>
 <style scoped>
 .odImg {
-  width: 80px;
-  height: 80px;
+  width: 40px;
+  height: 40px;
   margin-right: 10px;
-  font-size: 80px;
+  font-size: 40px;
+}
+.linetext {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 100%;
 }
 </style>
