@@ -3,14 +3,14 @@
              :close-on-click-modal="false"
              :visible.sync="visible">
 
-    <template v-if="dataForm.id">
+    <!-- <template v-if="dataForm.id">
       <el-alert title="确认修改后会自动重做，若还没有确认修改完成，请使用暂时保存功能"
                 :closable="false"
                 type="warning">
       </el-alert>
       <p></p>
 
-    </template>
+    </template> -->
     <el-form :model="dataForm"
              :rules="dataRule"
              class=""
@@ -74,9 +74,9 @@
           class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary"
-                 @click="dataFormSubmit(false)">暂时保存</el-button>
+                 @click="dataFormSubmit(false)">保存</el-button>
       <el-button type="primary"
-                 @click="dataFormSubmit(true)">确定</el-button>
+                 @click="dataFormSubmit(true)">保存并立即制作</el-button>
     </span>
   </el-dialog>
 </template>
@@ -198,9 +198,9 @@ export default {
     dataFormSubmit (redonow) {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
-          // if (this.dataForm.status >= 3) {
-          //   this.dataForm.status = 2
-          // }
+          if (this.dataForm.status === 1 && this.dataForm.imgs && this.dataForm.imgs.length > 0) {
+            this.dataForm.status = 2
+          }
           this.$http({
             url: this.$http.adornUrl(`/generator/orderdetail/${!this.dataForm.id ? 'save' : 'update'}` + (!this.dataForm.id ? '' : '/' + redonow)),
             method: 'post',
@@ -218,20 +218,22 @@ export default {
               'number': this.dataForm.number
             })
           }).then(({ data }) => {
-            if (data && data.code === 0) {
-              this.$message({
-                message: '操作成功',
-                type: 'success',
-                duration: 1500,
-                onClose: () => {
-                  this.visible = false
-                  this.$emit('refreshDataList')
-                }
-              })
-            } else {
+            if (data && data.code !== 0) {
               this.$message.error(data.msg)
+              // this.$message({
+              //   message: '操作成功',
+              //   type: 'success',
+              //   duration: 1500,
+              //   onClose: () => {
+
+              //   }
+              // })
             }
           })
+          this.visible = false
+          setTimeout(() => {
+            this.$emit('refreshDataList')
+          }, 300)
         }
       })
     }

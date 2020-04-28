@@ -1,4 +1,10 @@
 let printRecordStatus = {
+  '-1': {
+    text: '生成中',
+    value: -1,
+    type: 'success'
+  },
+
   '0': {
     text: '未饱和',
     value: '0',
@@ -17,11 +23,6 @@ let printRecordStatus = {
   '3': {
     text: '已导出',
     value: 3,
-    type: 'success'
-  },
-  '4': {
-    text: '生成中',
-    value: 4,
     type: 'success'
   }
 }

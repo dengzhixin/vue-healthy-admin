@@ -34,21 +34,24 @@
                       @change="originIdChange"></remoteSelect>
       </el-form-item>
 
-      <!-- <el-form-item label="卖家留言"
+      <el-form-item v-if="opType=='卖家备注'"
+                    label="卖家备注"
                     prop="sellerMsg">
         <el-input v-model="dataForm.sellerMsg"
-                  placeholder="卖家留言"></el-input>
-      </el-form-item> -->
-      <el-form-item label="系统备注"
-                    prop="remarks">
-        <el-input v-model="dataForm.remarks"
-                  placeholder="系统备注"></el-input>
+                  placeholder="卖家备注"></el-input>
       </el-form-item>
+
       <el-form-item v-if="dataForm.type==1"
                     label="买家昵称"
                     prop="buyerNick">
         <el-input v-model="dataForm.buyerNick"
                   placeholder="买家昵称"></el-input>
+      </el-form-item>
+      <el-form-item v-if="opType!='卖家备注'"
+                    label="系统备注"
+                    prop="remarks">
+        <el-input v-model="dataForm.remarks"
+                  placeholder="系统备注"></el-input>
       </el-form-item>
       <template v-if="dataForm.type==1">
         <el-form-item label="操作："
@@ -162,6 +165,7 @@ export default {
     return {
       url: '',
       visible: false,
+      opType: undefined,
       dataForm: {
         id: undefined,
         code: '',
@@ -272,9 +276,10 @@ export default {
     originIdChange (value) {
       this.dataForm.originId = value
     },
-    init (id, type) {
+    init (id, type, opType) {
       this.dataForm.id = id || 0
       this.dataForm.type = type
+      this.opType = opType
       this.visible = true
       this.orderDetailList = []
       this.$nextTick(() => {
@@ -329,7 +334,7 @@ export default {
       }
       let loading = this.$loading({
         lock: true,
-        text: this.dataForm.type === 0 ? '引入中' : '创建中',
+        text: '加载中',
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })

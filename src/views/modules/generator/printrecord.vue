@@ -229,7 +229,7 @@ export default {
       this.makdPrintRecord([row])
       setTimeout(() => {
         this.getDataList()
-      }, 300)
+      }, 100)
     },
     download () {
       if (this.dataListSelections.length === 0) {

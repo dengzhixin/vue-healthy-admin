@@ -1,13 +1,17 @@
 <template>
-  <el-dialog :title="批量导入"
+  <el-dialog title="批量"
              :close-on-click-modal="false"
              :visible.sync="visible">
 
     <el-form :model="dataForm"
              ref="dataForm"
-             @keyup.enter.native="dataFormSubmit()"
              label-width="80px">
-
+      <el-form-item label="操作">
+        <el-radio v-model="dataForm.opType"
+                  label="导入">导入新订单</el-radio>
+        <el-radio v-model="dataForm.opType"
+                  label="设置">设置订单</el-radio>
+      </el-form-item>
       <el-form-item label="店铺"
                     prop="originId">
         <remoteSelect v-if="visible"
@@ -18,11 +22,19 @@
                       value="id"
                       @change="originIdChange"></remoteSelect>
       </el-form-item>
-      <el-form-item label="统一设置卖家备注"
+      <el-form-item v-if="isAuth('generator:order:import-sellerMsg')"
+                    label="统一设置卖家备注"
                     prop="sellerMsg">
         <el-input type="text"
                   placeholder="请输入卖家备注，会同步到淘宝店"
                   v-model="dataForm.sellerMsg">
+        </el-input>
+      </el-form-item>
+      <el-form-item label="统一设置系统备注"
+                    prop="sellerMsg">
+        <el-input type="text"
+                  placeholder="统一设置系统备注"
+                  v-model="dataForm.remarks">
         </el-input>
       </el-form-item>
 
@@ -50,6 +62,7 @@
                       :autosize="{ minRows: 4}"
                       clearable
                       placeholder="请输入订单号，换行可以输入多个"
+                      @input="inputOrderExcodeChange"
                       v-model="inputOrderExcode">
             </el-input>
 
@@ -94,7 +107,10 @@ export default {
       visible: false,
       dataForm: {
         originId: undefined,
-        sellerMsg: undefined
+        sellerMsg: undefined,
+        remarks: undefined,
+        opType: '导入'
+
       },
       orders: [],
       failImportList: []
@@ -110,9 +126,22 @@ export default {
       this.orders = []
       this.inputOrderExcode = undefined
       this.dataForm.sellerMsg = undefined
+      this.dataForm.remarks = undefined
     },
     originIdChange (value) {
       this.dataForm.originId = value
+    },
+    inputOrderExcodeChange (value) {
+      let arr = value.trim().split('\n')
+      this.orders = arr.filter((item, index) => {
+        return arr.indexOf(item, 0) === index && item
+      }).map((v) => {
+        return {
+          exCode: v.trim(),
+          originId: this.dataForm.originId
+        }
+      })
+      console.log(this.orders)
     },
     importExcelOrders (file, fileList) {
       this.orders = []
@@ -135,7 +164,7 @@ export default {
               // let payTime = sheet['U' + i] ? sheet['U' + i].v : ''
               // let status = orderStatus(sheet['M' + i].v)
               // orders.push({ exCode, buyerMsg, sellerMsg, originId: 1, orderCreateTime, payTime, status })
-              orders.push({ exCode, originId: 1 })
+              orders.push({ exCode, originId: this.dataForm.originId })
             } catch (e) {
               that.$alert('请选择淘宝订单格式的表格')
             }
@@ -163,6 +192,8 @@ export default {
       }
     },
     dataFormSubmit () {
+      this.failImportList = []
+
       if (this.dataForm.originId === undefined) {
         this.$message('请先选择店铺')
         return
@@ -177,14 +208,30 @@ export default {
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.7)'
       })
+      if (this.dataForm.sellerMsg) {
+        this.orders.forEach((o) => {
+          o.sellerMsg = this.dataForm.sellerMsg
+        })
+      }
+      if (this.dataForm.remarks) {
+        this.orders.forEach((o) => {
+          o.remarks = this.dataForm.remarks
+        })
+      }
+      this.orders.forEach((o) => {
+        o.originId = this.dataForm.originId
+      })
       this.$http({
-        url: this.$http.adornUrl('/generator/order/saveFromExcel'),
+        url: this.$http.adornUrl('/generator/order/import'),
         method: 'POST',
-        data: this.orders
+        data: this.orders,
+        params: this.$http.adornParams({ opType: this.dataForm.opType, sellerMsg: this.dataForm.sellerMsg })
       }).then(({ data }) => {
         this.$message(data.msg)
         if (data.failNumber > 0) {
           this.failImportList = data.failList
+        } else {
+          this.visible = false
         }
         loading.close()
         this.$emit('refreshDataList')

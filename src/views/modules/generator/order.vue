@@ -71,7 +71,7 @@
                  @click="addOrUpdateHandle(null,0)">引入订单</el-button>
       <el-button v-if="isAuth('generator:order:import')"
                  type="primary"
-                 @click="importHandle()">导入订单</el-button>
+                 @click="importHandle()">批量操作</el-button>
       <el-button v-if="isAuth('generator:order:syncOrderStatus')"
                  type="primary"
                  @click="syncHandle()"
@@ -154,7 +154,7 @@
 
                   <el-tag v-if="scope.row.status!=1"
                           slot="reference"
-                          :type="orderDetailStatus[d.status].type">{{orderDetailStatus[d.status].text}}</el-tag>
+                          :type="orderDetailStatus[d.status].type"> {{orderDetailStatus[d.status].text}}</el-tag>
                   <el-tag v-else
                           slot="reference"
                           :type="orderStatus[scope.row.status].type">{{orderStatus[scope.row.status].text}}</el-tag>
@@ -194,8 +194,8 @@
           {{scope.row.buyerNick}}
 
           <a target="_blank"
-             :href="'http://www.taobao.com/webww/ww.php?ver=3&touid='+scope.row.buyerNick+'&siteid=cntaobao&status=1&charset=utf-8'"><img border="0"
-                 :src="'http://amos.alicdn.com/realonline.aw?v=2&uid='+scope.row.buyerNick+'&site=cntaobao&s=1&charset=utf-8'">
+             :href="'https://www.taobao.com/webww/ww.php?ver=3&touid='+scope.row.buyerNick+'&siteid=cntaobao&status=1&charset=utf-8'"><img border="0"
+                 :src="'https://amos.alicdn.com/realonline.aw?v=2&uid='+scope.row.buyerNick+'&site=cntaobao&s=1&charset=utf-8'">
           </a>
 
         </template>
@@ -224,7 +224,13 @@
       <el-table-column prop="sellerMsg"
                        header-align="center"
                        align="center"
-                       label="卖家留言">
+                       label="卖家备注">
+        <template slot-scope="scope">
+          {{scope.row.sellerMsg}}
+          <el-button type="text"
+                     size="small"
+                     @click="addOrUpdateHandle(scope.row.id,null,'卖家备注')">编辑</el-button>
+        </template>
       </el-table-column>
       <el-table-column prop="remarks"
                        header-align="center"
@@ -234,7 +240,7 @@
           {{scope.row.remarks}}
           <el-button type="text"
                      size="small"
-                     @click="addOrUpdateHandle(scope.row.id)">编辑</el-button>
+                     @click="addOrUpdateHandle(scope.row.id,null,'系统备注')">编辑</el-button>
         </template>
 
       </el-table-column>
@@ -530,10 +536,10 @@ export default {
         this.$refs.orderImport.init()
       })
     },
-    addOrUpdateHandle (id, type) {
+    addOrUpdateHandle (id, type, opType) {
       this.addOrUpdateVisible = true
       this.$nextTick(() => {
-        this.$refs.addOrUpdate.init(id, type)
+        this.$refs.addOrUpdate.init(id, type, opType)
       })
     },
     // 删除
@@ -612,6 +618,6 @@ export default {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  width: 100%;
+  width: 230px;
 }
 </style>
