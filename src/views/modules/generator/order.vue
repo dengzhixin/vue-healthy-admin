@@ -66,16 +66,16 @@
       <el-button v-if="isAuth('generator:order:manualCreate')"
                  type="primary"
                  @click="addOrUpdateHandle(null,1)">新建订单</el-button>
-      <el-button v-if="isAuth('generator:order:save')"
+      <!-- <el-button v-if="isAuth('generator:order:save')"
                  type="primary"
-                 @click="addOrUpdateHandle(null,0)">引入订单</el-button>
+                 @click="addOrUpdateHandle(null,0)">引入订单</el-button> -->
       <el-button v-if="isAuth('generator:order:import')"
                  type="primary"
                  @click="importHandle()">批量操作</el-button>
-      <el-button v-if="isAuth('generator:order:syncOrderStatus')"
+      <!-- <el-button v-if="isAuth('generator:order:syncOrderStatus')"
                  type="primary"
                  @click="syncHandle()"
-                 :disabled="dataListSelections.length <= 0">批量同步订单状态</el-button>
+                 :disabled="dataListSelections.length <= 0">批量同步订单状态</el-button> -->
       <el-button v-if="isAuth('generator:order:delete')"
                  type="danger"
                  @click="deleteHandle()"
@@ -161,7 +161,7 @@
                   <template v-if="d.printUrl">
                     <br />
                     <el-link icon="el-icon-picture"
-                             :href="d.printUrl +'?x-oss-process=style/h150'"
+                             :href="url(d.printUrl) +'?x-oss-process=style/h150'"
                              target="_bank">查看效果图</el-link>
                   </template>
                   <template>
@@ -169,10 +169,10 @@
                     <a href="#"
                        @click.prevent="edit(scope.row,index,d.id)"><i class="el-icon-edit-outline"></i>修改</a>
                   </template>
-                  <template v-if="d.status==4 && d.printUrl">
+                  <template v-if="d.status==3 ||d.status==4 && d.printUrl">
                     <br />
                     <a href="#"
-                       @click.prevent="redo(scope,index,d.id)"><i class="el-icon-refresh"></i>重做</a>
+                       @click.prevent="redo(scope,index,d.id)"><i class="el-icon-refresh"></i>{{d.status==4?'重做':'加快打印'}}</a>
                   </template>
 
                 </el-popover>
@@ -316,6 +316,7 @@ import AddOrUpdateOrderDetail from './orderdetail-add-or-update'
 import OrderImport from './order-import.vue'
 import orderDetailStatus from './orderDetailStatus.js'
 import remoteSelect from '../../common/remoteSelect'
+import url from '@/utils/url.js'
 
 export default {
   name: 'order',
@@ -363,6 +364,7 @@ export default {
     this.getDataList()
   },
   computed: {
+    url: url,
     stepActive (ostatus, status) {
       return function (ostatus, status) {
         if (ostatus === 1) {

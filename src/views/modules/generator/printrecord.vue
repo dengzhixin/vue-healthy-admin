@@ -16,11 +16,11 @@
                   v-model="dataForm.id"
                   clearable></el-input>
       </el-form-item>
-      <el-form-item label="订单号">
+      <!-- <el-form-item label="订单号">
         <el-input type="number"
                   v-model="dataForm.excode"
                   clearable></el-input>
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item label="状态：">
         <el-select clearable
                    v-model="dataForm.status"
@@ -42,11 +42,11 @@
                    @click="loadPrint">下载所有可打印文件</el-button> -->
         <!-- <el-button v-if="isAuth('generator:printrecord:save')"
                    type="primary"
-                   @click="addOrUpdateHandle()">新增</el-button>
+                   @click="addOrUpdateHandle()">新增</el-button>-->
         <el-button v-if="isAuth('generator:printrecord:delete')"
                    type="danger"
                    @click="deleteHandle()"
-                   :disabled="dataListSelections.length <= 0">批量删除</el-button> -->
+                   :disabled="dataListSelections.length <= 0">批量删除</el-button>
       </el-form-item>
     </el-form>
     <el-table :data="dataList"
@@ -90,7 +90,7 @@
                         trigger="hover">
               <div class="popbox">
                 <img style="height: 100px"
-                     :src="item.printUrl+'?x-oss-process=style/h150'" />
+                     :src="url(item.printUrl)+'?x-oss-process=style/h150'" />
               </div>
               <div slot="reference"
                    class="layout-row pointer">
@@ -110,9 +110,9 @@
         <template slot-scope="scope">
           <template v-if="scope.row.printUrl">
             <img style="width:100%;max-height:150px;object-fit: contain"
-                 :src="scope.row.printUrl +'?x-oss-process=style/200x'"
+                 :src="url(scope.row.printUrl) +'?x-oss-process=style/200x'"
                  alt="">
-            <a :href="scope.row.printUrl"
+            <a :href="url(scope.row.printUrl)"
                target="_blank">查看原图</a>
           </template>
           <template v-else>
@@ -184,6 +184,7 @@ import AddOrUpdate from './printrecord-add-or-update'
 
 import loadImages from '../../../utils/loadImages.js'
 import printRecordStatus from './status/printRecordStatus.js'
+import url from '@/utils/url.js'
 import {
   saveAs
 } from 'file-saver'
@@ -208,6 +209,9 @@ export default {
   },
   components: {
     AddOrUpdate
+  },
+  computed: {
+    url: url
   },
   activated () {
     this.getDataList()
@@ -238,7 +242,7 @@ export default {
       }
       this.percentage = 10
       loadImages(this.dataListSelections.map((record) => {
-        return { url: record.printUrl, name: record.id }
+        return { url: this.url(record.printUrl), name: record.id }
       }), () => {
         this.dataListLoading = false
         setTimeout(() => {
@@ -366,7 +370,7 @@ export default {
     // 下载
     downloadHandle (row) {
       this.downloadPrintRecord([row]).then(() => {
-        saveAs(row.printUrl, '流水号' + row.id + '.png')
+        saveAs(this.url(row.printUrl), '流水号' + row.id + '.png')
       })
     },
     downloadPrintRecord (records) {

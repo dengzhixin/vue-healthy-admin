@@ -24,14 +24,16 @@
       </el-form-item> -->
       <el-form-item label="cron表达式"
                     prop="cronExpression">
-        <el-popover v-model="cronPopoverShow">
+        <!-- <el-popover v-model="cronPopoverShow">
           <cron @change="changeCron"
                 @close="cronPopoverShow=false"></cron>
           <el-input slot="reference"
                     @click="cronPopoverShow=true"
                     v-model="dataForm.cronExpression"
                     placeholder="请输入定时策略"></el-input>
-        </el-popover>
+        </el-popover> -->
+        <el-input v-model="dataForm.cronExpression"
+                  placeholder="请输入定时策略"></el-input>
       </el-form-item>
 
     </el-form>

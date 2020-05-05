@@ -6,12 +6,6 @@
     <el-form :model="dataForm"
              ref="dataForm"
              label-width="80px">
-      <el-form-item label="操作">
-        <el-radio v-model="dataForm.opType"
-                  label="导入">导入新订单</el-radio>
-        <el-radio v-model="dataForm.opType"
-                  label="设置">设置订单</el-radio>
-      </el-form-item>
       <el-form-item label="店铺"
                     prop="originId">
         <remoteSelect v-if="visible"
@@ -22,6 +16,14 @@
                       value="id"
                       @change="originIdChange"></remoteSelect>
       </el-form-item>
+      <el-form-item label="操作">
+        <el-radio v-model="dataForm.opType"
+                  label="设置">设置订单</el-radio>
+        <el-radio v-model="dataForm.opType"
+                  label="导入">导入新订单</el-radio>
+
+      </el-form-item>
+
       <el-form-item v-if="isAuth('generator:order:import-sellerMsg')"
                     label="统一设置卖家备注"
                     prop="sellerMsg">
@@ -37,11 +39,19 @@
                   v-model="dataForm.remarks">
         </el-input>
       </el-form-item>
+      <el-form-item label="统一操作">
+        <el-checkbox v-model="dataForm.closeMake">禁止制作</el-checkbox>
+      </el-form-item>
 
       <el-collapse v-model="activeImportCol"
                    accordion>
         <el-collapse-item title="excel表格导入"
                           name="excel">
+          <el-alert title='可以识别表格中”订单编号“、"订单号“所在的列'
+                    :closable="false"
+                    type="warning">
+          </el-alert>
+          <br />
           <el-upload style="display:inline-block"
                      ref="upload"
                      action="#"
@@ -74,7 +84,7 @@
       <br />
 
       <el-button type="primary"
-                 @click="dataFormSubmit()">导入</el-button>
+                 @click="dataFormSubmit()">{{dataForm.opType}}</el-button>
 
       <span v-if="orders.length>0">一共{{orders.length}}个订单</span>
       <template v-if="failImportList.length>0">
@@ -109,7 +119,8 @@ export default {
         originId: undefined,
         sellerMsg: undefined,
         remarks: undefined,
-        opType: '导入'
+        opType: '设置',
+        closeMake: false
 
       },
       orders: [],
@@ -150,13 +161,31 @@ export default {
       readWorkbookFromLocalFile(file.raw, (workbook) => {
         let orders = []
         let maxLine = 0
+
+        let arr = ['订单编号', '订单号']
+
         for (let sheetName in workbook.Sheets) {
           let sheet = workbook.Sheets[sheetName]
           let tag = sheet['!ref']
+          console.log(sheet)
           maxLine = tag.split(':')[1].replace(/[^\d]/g, ' ')
+          let col = 'A'
+          for (let i = 0; i < 26; i++) {
+            let tcol = String.fromCharCode(i + 65)
+            if (sheet[tcol + 1] == null) {
+              continue
+            }
+            let name = sheet[tcol + 1].v
+
+            if (arr.indexOf(name) >= 0) {
+              col = tcol
+              break
+            }
+          }
+
           for (let i = 2; i <= maxLine; i++) {
             try {
-              let exCode = sheet['A' + i].v
+              let exCode = sheet[col + i].v
 
               // let buyerMsg = sheet['N' + i].v === 'null' ? '' : sheet['N' + i].v
               // let sellerMsg = sheet['Z' + i].v === `'null` ? '' : sheet['Z' + i].v.slice(1)
@@ -178,15 +207,15 @@ export default {
         reader.onload = function (e) {
           let data = e.target.result
           let workbook
-          try {
-            workbook = XLSX.read(data, { type: 'binary', password: 123 })
-            if (callback) callback(workbook)
-          } catch (e) {
-            // let password = prompt('输入密码')
-            // alert(password)
-            // workbook = XLSX.read(data, { type: 'binary', password })
-            that.$alert('打开失败，若文件已加密，请先解密')
-          }
+          // try {
+          workbook = XLSX.read(data, { type: 'binary' })
+          if (callback) callback(workbook)
+          // } catch (e) {
+          // let password = prompt('输入密码')
+          // alert(password)
+          // workbook = XLSX.read(data, { type: 'binary', password })
+          // that.$alert('打开失败，若文件已加密，请先解密')
+          // }
         }
         reader.readAsBinaryString(file)
       }
@@ -216,6 +245,11 @@ export default {
       if (this.dataForm.remarks) {
         this.orders.forEach((o) => {
           o.remarks = this.dataForm.remarks
+        })
+      }
+      if (this.dataForm.closeMake) {
+        this.orders.forEach((o) => {
+          o.status = 5
         })
       }
       this.orders.forEach((o) => {
