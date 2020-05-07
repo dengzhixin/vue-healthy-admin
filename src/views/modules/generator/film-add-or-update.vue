@@ -28,12 +28,12 @@
         <el-input v-model.number="dataForm.contentHeight"
                   placeholder="内容高度"></el-input>
       </el-form-item>
-      <el-form-item label="x"
+      <el-form-item label="内容起始x"
                     prop="x">
         <el-input v-model.number="dataForm.x"
                   placeholder="x"></el-input>
       </el-form-item>
-      <el-form-item label="y"
+      <el-form-item label="内容起始y"
                     prop="y">
         <el-input v-model.number="dataForm.y"
                   placeholder="y"></el-input>

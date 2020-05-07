@@ -9,20 +9,21 @@
              label-width="100px">
       <el-form-item label="定时任务名"
                     prop="remark">
-        <el-input v-model="dataForm.remark"
+        <el-input :disabled="true"
+                  v-model="dataForm.remark"
                   placeholder="定时任务名"></el-input>
       </el-form-item>
-      <el-form-item label="bean名称"
+      <!-- <el-form-item label="bean名称"
                     prop="beanName">
         <el-input v-model="dataForm.beanName"
                   placeholder="spring bean名称, 如: testTask"></el-input>
-      </el-form-item>
+      </el-form-item> -->
       <!-- <el-form-item label="参数"
                     prop="params">
         <el-input v-model="dataForm.params"
                   placeholder="参数"></el-input>
       </el-form-item> -->
-      <el-form-item label="cron表达式"
+      <el-form-item label="周期(小时)"
                     prop="cronExpression">
         <!-- <el-popover v-model="cronPopoverShow">
           <cron @change="changeCron"
@@ -32,8 +33,10 @@
                     v-model="dataForm.cronExpression"
                     placeholder="请输入定时策略"></el-input>
         </el-popover> -->
-        <el-input v-model="dataForm.cronExpression"
-                  placeholder="请输入定时策略"></el-input>
+        <el-input v-model="dataForm.hour"
+                  placeholder="请输入间隔时间(小时)"></el-input>
+        <!-- <el-input v-model="dataForm.cronExpression"
+                  placeholder="请输入定时策略"></el-input> -->
       </el-form-item>
 
     </el-form>
@@ -62,7 +65,8 @@ export default {
         params: '',
         cronExpression: '',
         remark: '',
-        status: 0
+        status: 0,
+        hour: 0
       },
       dataRule: {
         beanName: [
@@ -93,6 +97,7 @@ export default {
               this.dataForm.beanName = data.schedule.beanName
               this.dataForm.params = data.schedule.params
               this.dataForm.cronExpression = data.schedule.cronExpression
+              this.dataForm.hour = data.schedule.cronExpression.split(' ')[2].split('/')[1]
               this.dataForm.remark = data.schedule.remark
               this.dataForm.status = data.schedule.status
             }
@@ -111,7 +116,7 @@ export default {
               'jobId': this.dataForm.id || undefined,
               'beanName': this.dataForm.beanName,
               'params': this.dataForm.params,
-              'cronExpression': this.dataForm.cronExpression,
+              'cronExpression': '0 0 0/' + this.dataForm.hour.trim() + ' * * ?',
               'remark': this.dataForm.remark,
               'status': !this.dataForm.id ? undefined : this.dataForm.status
             })

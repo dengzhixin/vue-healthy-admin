@@ -1,13 +1,13 @@
 <template>
   <div class="mod-schedule">
-    <el-form :inline="true"
+    <!-- <el-form :inline="true"
              :model="dataForm"
              @keyup.enter.native="getDataList()">
-      <el-form-item>
+       <el-form-item>
         <el-input v-model="dataForm.beanName"
                   placeholder="bean名称"
                   clearable></el-input>
-      </el-form-item>
+      </el-form-item> 
       <el-form-item>
         <el-button @click="getDataList()">查询</el-button>
         <el-button v-if="isAuth('sys:schedule:save')"
@@ -34,6 +34,7 @@
                    @click="logHandle()">日志列表</el-button>
       </el-form-item>
     </el-form>
+    -->
     <el-table :data="dataList"
               border
               v-loading="dataListLoading"
@@ -68,7 +69,8 @@
       <el-table-column prop="cronExpression"
                        header-align="center"
                        align="center"
-                       label="cron表达式">
+                       label="周期（小时）">
+        <template slot-scope="scope">{{hour(scope.row.cronExpression)}}</template>
       </el-table-column>
 
       <el-table-column prop="status"
@@ -77,7 +79,7 @@
                        label="状态">
         <template slot-scope="scope">
           <el-tag v-if="scope.row.status === 0"
-                  size="small">正常</el-tag>
+                  size="small">启用</el-tag>
           <el-tag v-else
                   size="small"
                   type="danger">暂停</el-tag>
@@ -104,7 +106,7 @@
           <el-button v-if="isAuth('sys:schedule:resume') && scope.row.status ===1"
                      type="text"
                      size="small"
-                     @click="resumeHandle(scope.row.jobId)">恢复</el-button>
+                     @click="resumeHandle(scope.row.jobId)">启用</el-button>
           <el-button v-if="isAuth('sys:schedule:run')"
                      type="text"
                      size="small"
@@ -152,6 +154,13 @@ export default {
   components: {
     AddOrUpdate,
     Log
+  },
+  computed: {
+    hour: (ex) => {
+      return (ex) => {
+        return ex.split(' ')[2].split('/')[1]
+      }
+    }
   },
   activated () {
     this.getDataList()
