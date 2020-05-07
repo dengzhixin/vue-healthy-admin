@@ -214,6 +214,16 @@ export default {
     url: url
   },
   activated () {
+    if (this.$route.params.status) {
+      switch (this.$route.params.status) {
+        case '待饱和':
+          this.dataForm.status = 0
+          break
+        case '待制作':
+          this.dataForm.status = 2
+          break
+      }
+    }
     this.getDataList()
   },
   methods: {

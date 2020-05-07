@@ -2,7 +2,7 @@
 function url(u) {
   return function (u) {
     if (u.startsWith('/')) {
-      return 'http://127.0.0.1:8080/filmaker/img' + u
+      return '/filmaker/img' + u
     } else {
       return u
     }

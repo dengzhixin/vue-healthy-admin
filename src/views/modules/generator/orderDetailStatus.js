@@ -10,12 +10,12 @@ let orderDetailStatus = {
     type: 'warning'
   },
   '2': {
-    text: '待预处理',
+    text: '待设计',
     value: 2,
     type: 'info'
   },
   '3': {
-    text: '待打印',
+    text: '待拼版',
     value: 3,
     type: 'info'
   },
@@ -34,6 +34,11 @@ let orderDetailStatus = {
     value: 6,
     type: 'danger'
   },
+  '56': {
+    text: '异常',
+    value: 56,
+    type: 'danger'
+  },
   '7': {
     text: '找不到制作模板',
     value: 7,
@@ -50,7 +55,7 @@ let orderDetailStatus = {
     type: 'success'
   },
   '10': {
-    text: '预处理中',
+    text: '设计中',
     value: 10,
     type: 'success'
   }

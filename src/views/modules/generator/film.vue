@@ -59,12 +59,12 @@
                        align="center"
                        label="内容高度">
       </el-table-column>
-      <el-table-column prop="x"
+      <el-table-column prop="内容起始x"
                        header-align="center"
                        align="center"
                        label="x">
       </el-table-column>
-      <el-table-column prop="y"
+      <el-table-column prop="内容起始y"
                        header-align="center"
                        align="center"
                        label="y">

@@ -47,7 +47,7 @@
                    accordion>
         <el-collapse-item title="excel表格导入"
                           name="excel">
-          <el-alert title='可以识别表格中”订单编号“、"订单号“所在的列'
+          <el-alert title='可以识别表格中”订单编号“、"订单号“所在的列为订单号'
                     :closable="false"
                     type="warning">
           </el-alert>
@@ -65,7 +65,7 @@
           </el-upload>
 
         </el-collapse-item>
-        <el-collapse-item title="手动输入"
+        <el-collapse-item title="手动输入订单号"
                           name="text">
           <el-form-item label="订单号">
             <el-input type="textarea"

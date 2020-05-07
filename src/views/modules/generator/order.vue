@@ -147,7 +147,7 @@
                             simple
                             :process-status="stepStatus(scope.row.status,d.status)">
                     <el-step title="付款"></el-step>
-                    <el-step title="预处理"></el-step>
+                    <el-step title="设计"></el-step>
                     <el-step title="打印"></el-step>
                     <el-step title="制作"></el-step>
                   </el-steps>
@@ -250,16 +250,16 @@
                        label="下单时间"
                        width="100">
       </el-table-column>
-      <el-table-column prop="payTime"
+      <!-- <el-table-column prop="payTime"
                        header-align="center"
                        align="center"
                        label="支付时间">
-      </el-table-column>
-      <el-table-column prop="createTime"
+      </el-table-column> -->
+      <!-- <el-table-column prop="createTime"
                        header-align="center"
                        align="center"
                        label="导入时间">
-      </el-table-column>
+      </el-table-column> -->
       <el-table-column prop="originName"
                        header-align="center"
                        align="center"
@@ -361,6 +361,25 @@ export default {
     remoteSelect
   },
   activated () {
+    if (this.$route.params.status) {
+      switch (this.$route.params.status) {
+        case '异常':
+          this.dataForm.odStatus = 56
+          break
+        case '待上传':
+          this.dataForm.odStatus = 1
+          break
+        case '待制作':
+          this.dataForm.odStatus = 9
+          break
+        case '待设计':
+          this.dataForm.odStatus = 2
+          break
+        case '待拼版':
+          this.dataForm.odStatus = 3
+          break
+      }
+    }
     this.getDataList()
   },
   computed: {

@@ -6,7 +6,7 @@
   window.SITE_CONFIG = {}
 
   // api接口请求地址
-  window.SITE_CONFIG['baseUrl'] = 'https://api.spedear.com/filmaker'
+  window.SITE_CONFIG['baseUrl'] = 'http://ya31097725.zicp.vip:26136/filmaker'
 
   // cdn地址 = 域名 + 版本号
   window.SITE_CONFIG['domain'] = './' // 域名
