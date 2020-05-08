@@ -1,7 +1,7 @@
 <template>
   <div class="mod-home">
     <h3>订单列表统计</h3>
-    <ul class="card">
+    <ul class="card hover">
       <li class="data"
           v-for="(item) in odlist"
           :key="item.name"
@@ -14,7 +14,7 @@
 
     </ul>
     <h3>拼版打印统计</h3>
-    <ul class="card">
+    <ul class="card hover">
       <li class=""
           v-for="(item) in printrecordList"
           :key="item.name"
@@ -31,7 +31,8 @@
       <li v-for="(item) in apistatus"
           :key="item.name"
           class="status">
-        <div :class="item.code==0?'dot success':'dot fail'"></div>
+        <div :class="item.code==0?'dot success':'dot fail'"><i :class="item.code==0?'el-icon-check':'el-icon-close'">
+          </i></div>
         <p>{{item.name}}</p>
         <p v-if="item.code!=0">请立即联系管理员,err_code：{{item.code}}-err_msg：{{item.msg}}</p>
       </li>
@@ -129,17 +130,24 @@ h1 {
   align-items: center;
 }
 .card .status .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 40px;
+  font-size: 20px;
+  font-weight: bold;
+  background-color: rgba(0, 0, 0, 0.02);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .card .status .success {
-  background-color: #45c2b5;
+  color: #45c2b5;
 }
 .card .status .fail {
-  background-color: red;
+  color: red;
 }
-.card li:hover {
+.hover li:hover {
   background-color: rgba(0, 0, 0, 0.02);
 }
 </style>

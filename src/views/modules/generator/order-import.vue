@@ -23,29 +23,9 @@
                   label="导入">导入新订单</el-radio>
 
       </el-form-item>
-
-      <el-form-item v-if="isAuth('generator:order:import-sellerMsg')"
-                    label="统一设置卖家备注"
-                    prop="sellerMsg">
-        <el-input type="text"
-                  placeholder="请输入卖家备注，会同步到淘宝店"
-                  v-model="dataForm.sellerMsg">
-        </el-input>
-      </el-form-item>
-      <el-form-item label="统一设置系统备注"
-                    prop="sellerMsg">
-        <el-input type="text"
-                  placeholder="统一设置系统备注"
-                  v-model="dataForm.remarks">
-        </el-input>
-      </el-form-item>
-      <el-form-item label="统一操作">
-        <el-checkbox v-model="dataForm.closeMake">禁止制作</el-checkbox>
-      </el-form-item>
-
       <el-collapse v-model="activeImportCol"
                    accordion>
-        <el-collapse-item title="excel表格导入"
+        <el-collapse-item title="excel表格导入订单号"
                           name="excel">
           <el-alert title='可以识别表格中”订单编号“、"订单号“所在的列为订单号'
                     :closable="false"
@@ -79,9 +59,108 @@
           </el-form-item>
 
         </el-collapse-item>
+        <el-collapse-item title="文件夹导入订单和图片"
+                          name="dirs"
+                          v-if="dataForm.opType=='导入'">
+          <el-alert title="请选择一个总文件夹，子文件名为订单号，子文件里面为图片"
+                    :closable="false"
+                    type="warning"></el-alert>
+          <br />
+          <el-button class="btn-addFiles">
+            <input type="file"
+                   webkitdirectory
+                   @change="addFileDir"
+                   accept="image/*"
+                   multiple> 选择一个总文件夹</el-button>
+          <!-- <remoteSelect :model="dataForm"
+                        type="film"
+                        fild="allFilmId"
+                        label="name"
+                        value="id"
+                        @change="allfilmIdChange"></remoteSelect> -->
+
+          <el-collapse>
+            <el-collapse-item :title="order.exCode"
+                              :name="order.exCode"
+                              v-for="(order,oindex) in orders"
+                              :key="'order'+oindex">
+              <el-form label-width="80px"
+                       v-for="(orderDetail,index) in order.list"
+                       :key="'orderDetail'+index">
+                <el-form-item label="制作模板"
+                              style="display:inline-block"
+                              prop="filmId">
+                  <remoteSelect :model="orderDetail"
+                                type="film"
+                                fild="filmId"
+                                label="name"
+                                value="id"
+                                :index="index"
+                                :oindex="oindex"
+                                @change="filmIdChange"></remoteSelect>
+
+                </el-form-item>
+                <el-form-item label="数量"
+                              prop="number"
+                              style="display:inline-block">
+
+                  <el-input-number v-model="orderDetail.number"
+                                   :min="1"></el-input-number>
+                </el-form-item>
+                <div>
+                  <vuedraggable class="imgs"
+                                v-model="orderDetail.imgs">
+                    <div class="img"
+                         v-for="(img,imgIndex) in orderDetail.imgs"
+                         :key="img.url">
+                      <img :src="img.url +'?x-oss-process=style/200x'"
+                           :style="'transform:rotate('+90*img.angle+'deg)'"
+                           alt="">
+
+                      <span>
+                        {{imgIndex+1}}
+                        <i class="icon el-icon-caret-right"
+                           @click="setImgAngle(oindex,index,imgIndex)"
+                           title="旋转"></i>
+                        <i class="icon el-icon-delete"
+                           title="删除"
+                           @click="deleteImg(oindex,index,imgIndex)"></i>
+                      </span>
+
+                    </div>
+
+                  </vuedraggable>
+                </div>
+
+              </el-form>
+            </el-collapse-item>
+
+          </el-collapse>
+
+        </el-collapse-item>
 
       </el-collapse>
       <br />
+      <h4>统一操作</h4>
+      <el-form-item v-if="isAuth('generator:order:import-sellerMsg')"
+                    label="统一设置卖家备注"
+                    prop="sellerMsg">
+        <el-input type="text"
+                  placeholder="请输入卖家备注，会同步到淘宝店"
+                  v-model="dataForm.sellerMsg">
+        </el-input>
+      </el-form-item>
+
+      <el-form-item label="统一设置系统备注"
+                    prop="sellerMsg">
+        <el-input type="text"
+                  placeholder="统一设置系统备注"
+                  v-model="dataForm.remarks">
+        </el-input>
+      </el-form-item>
+      <el-form-item label="统一操作">
+        <el-checkbox v-model="dataForm.closeMake">禁止制作</el-checkbox>
+      </el-form-item>
 
       <el-button type="primary"
                  @click="dataFormSubmit()">{{dataForm.opType}}</el-button>
@@ -104,10 +183,13 @@
 <script>
 import remoteSelect from '../../common/remoteSelect'
 import XLSX from 'xlsx'
+import vuedraggable from 'vuedraggable'
 
 export default {
+  name: 'order-import',
   components: {
-    remoteSelect
+    remoteSelect,
+    vuedraggable
   },
   data () {
     return {
@@ -120,7 +202,8 @@ export default {
         sellerMsg: undefined,
         remarks: undefined,
         opType: '设置',
-        closeMake: false
+        closeMake: false,
+        allFilmId: undefined
 
       },
       orders: [],
@@ -131,6 +214,99 @@ export default {
     this.url = this.$http.adornUrl(`/sys/oss/uploadZip?token=${this.$cookie.get('token')}`)
   },
   methods: {
+    allfilmIdChange (value) {
+      this.orders.forEach((o) => {
+        o.list.forEach((od) => {
+          console.log(od)
+          od.filmId = value
+        })
+      })
+      console.log(this.orders)
+      this.$forceUpdate()
+    },
+    deleteImg (oindex, index, imgIndex) {
+      this.orders[oindex].list[index].imgs.splice(imgIndex, 1)
+      // this.$forceUpdate()
+    },
+    setImgAngle (oindex, index, imgIndex) {
+      let img = this.orders[oindex].list[index].imgs[imgIndex]
+      img.angle = img.angle ? img.angle + 1 : 1
+      this.$forceUpdate()
+    },
+    filmIdChange (value, index, oindex) {
+      this.orders[oindex].list[index].filmId = value
+    },
+    addFileDir (e) {
+      let dirs = {}
+      let files = Array.from(e.target.files)
+      if (files.length === 0) {
+        return
+      }
+      this.orders = []
+      files.forEach((file) => {
+        if (file.type.startsWith('image')) {
+          let d = file.webkitRelativePath.substring(0, file.webkitRelativePath.lastIndexOf('/'))
+          if (!dirs[d]) {
+            dirs[d] = []
+          }
+          dirs[d].push(file)
+        }
+      })
+      let num = Object.keys(dirs).length
+
+      Object.keys(dirs).forEach((dir) => {
+        dirs[dir] = dirs[dir].sort((f1, f2) => {
+          let n1, n2
+          n1 = parseInt(f1.name.split('.')[0])
+          n2 = parseInt(f2.name.split('.')[0])
+          if (isNaN(n1)) {
+            n1 = 0
+          }
+          if (isNaN(n2)) {
+            n2 = 0
+          }
+
+          return n1 - n2
+        })
+      })
+      let orderList = []
+      console.log(dirs)
+
+      Object.keys(dirs).forEach((dir) => {
+        let formData = new FormData()
+        let split = dir.split('/')
+        let tOrder = {
+          exCode: split[split.length - 1],
+          list: []
+        }
+        let arr = Array.from(dirs[dir])
+        arr.forEach((f) => {
+          formData.append('files', f)
+        })
+        this.$http({
+          url: this.$http.adornUrl(`/sys/oss/uploads`),
+          method: 'post',
+          data: formData
+        }).then(({ data }) => {
+          let imgs = data.urls.map((url) => {
+            return {
+              number: 1,
+              url: url,
+              angle: 0
+            }
+          })
+          tOrder.list.push({ imgs: imgs, number: 1 })
+          orderList.push(tOrder)
+          num--
+          console.log(num)
+          if (num === 0) {
+            this.orders = orderList
+
+            this.$forceUpdate()
+          }
+        })
+      })
+    },
     init () {
       this.visible = true
       this.failImportList = []
@@ -227,7 +403,7 @@ export default {
         this.$message('请先选择店铺')
         return
       }
-      if (this.orders == null || this.orders.length === 0) {
+      if (this.orders == null || this.orders.length === 0 || this.ordersWithDetail.length === 0) {
         this.$message('没有可以导入的订单')
         return
       }
@@ -275,3 +451,19 @@ export default {
   }
 }
 </script>
+<style scoped>
+@import url("../../common/css/userImgs.css");
+.btn-addFiles {
+  position: relative;
+}
+
+.btn-addFiles input {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0;
+
+  position: absolute;
+  cursor: pointer;
+}
+</style>

@@ -66,9 +66,9 @@
       <el-button v-if="isAuth('generator:order:manualCreate')"
                  type="primary"
                  @click="addOrUpdateHandle(null,1)">新建订单</el-button>
-      <!-- <el-button v-if="isAuth('generator:order:save')"
+      <el-button v-if="isAuth('generator:order:save')"
                  type="primary"
-                 @click="addOrUpdateHandle(null,0)">引入订单</el-button> -->
+                 @click="addOrUpdateHandle(null,0)">引入订单</el-button>
       <el-button v-if="isAuth('generator:order:import')"
                  type="primary"
                  @click="importHandle()">批量操作</el-button>
@@ -121,10 +121,22 @@
                  class="el-icon-picture-outline odImg"></i>
 
               <div class="layout-col">
-                <div class="linetext"
-                     v-if="d.title"> {{d.title}}<br /></div>
-                <div class="linetext"
-                     v-if="d.skuName"> {{d.skuName}}<br /></div>
+
+                <el-tooltip class="item"
+                            effect="dark"
+                            :content="d.title"
+                            v-if="d.title"
+                            placement="top">
+                  <div class="linetext"> {{d.title}}<br /></div>
+                </el-tooltip>
+                <el-tooltip class="item"
+                            effect="dark"
+                            :content="d.skuName"
+                            placement="top"
+                            v-if="d.skuName">
+                  <div class="linetext"> {{d.skuName}}<br /></div>
+                </el-tooltip>
+
                 <div class="layout-row jscenter">
                   模板:{{d.filmName?d.filmName:'无'}}
                   数量:

@@ -28,6 +28,7 @@ export default {
     label: String,
     value: String,
     index: Number,
+    oindex: Number,
     multiple: {
       type: Boolean,
       default: false
@@ -50,7 +51,7 @@ export default {
   },
   methods: {
     onchange (value) {
-      this.$emit('change', value, this.index)
+      this.$emit('change', value, this.index, this.oindex)
     },
     remoteMethod (query) {
       this.loading = true

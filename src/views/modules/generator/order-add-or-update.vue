@@ -66,7 +66,7 @@
                    @change="addFileDir"
                    accept="image/*"
                    multiple> 上传定制包</el-button>
-          <el-upload style="display:inline-block"
+          <!-- <el-upload style="display:inline-block"
                      action="#"
                      webkitdirectory
                      :on-change="uploadImgsZip"
@@ -76,7 +76,7 @@
             <el-button slot="trigger"
                        type="primary">上传定制包</el-button>
 
-          </el-upload>
+          </el-upload> -->
         </el-form-item>
         <div class="divider"></div>
         <el-form :model="orderDetail"
@@ -130,12 +130,6 @@
                 </span>
 
               </div>
-              <uploadImageCard slot="footer"
-                               type="button"
-                               buttonText="上传图片"
-                               :index="index"
-                               :multiple="true"
-                               @uploadSuccess="getNewImg"></uploadImageCard>
 
             </vuedraggable>
           </div>
@@ -220,7 +214,6 @@ export default {
     addFileDir (e) {
       let dirs = {}
       let files = Array.from(e.target.files)
-      console.log(files)
       files.forEach((file) => {
         if (file.type.startsWith('image')) {
           let d = file.webkitRelativePath.substring(0, file.webkitRelativePath.lastIndexOf('/'))
@@ -245,22 +238,29 @@ export default {
           return n1 - n2
         })
       })
-      let formData = new FormData()
-      formData.append('files', '123')
-      console.log(formData)
 
-      // Object.keys(dirs).forEach((dir) => {
-      //   let formData = new FormData()
-      //   formData.append('files', '123')
-
-      //   // let arr = Array.from(dirs[dir])
-      //   // arr.forEach((f) => {
-      //   //   console.log(f)
-      //   //   formData.append('files', f.name)
-      //   //   console.log(formData)
-      //   // })
-      //   console.log(formData)
-      // })
+      Object.keys(dirs).forEach((dir) => {
+        let formData = new FormData()
+        let arr = Array.from(dirs[dir])
+        arr.forEach((f) => {
+          formData.append('files', f)
+        })
+        this.$http({
+          url: this.$http.adornUrl(`/sys/oss/uploads`),
+          method: 'post',
+          data: formData
+        }).then(({ data }) => {
+          console.log(data)
+          let imgs = data.urls.map((url) => {
+            return {
+              number: 1,
+              url: url,
+              angle: 0
+            }
+          })
+          this.orderDetailList.push({ imgs: imgs, number: 1 })
+        })
+      })
     },
     getNewImg (response) {
       console.log(response)
@@ -458,6 +458,8 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+@import url("../../common/css/userImgs.css");
+
 .btn-addFiles {
   position: relative;
 }
@@ -470,23 +472,5 @@ export default {
 
   position: absolute;
   cursor: pointer;
-}
-.imgs {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.imgs .img {
-  margin: 10px;
-  display: flex;
-  flex-direction: column;
-}
-.imgs .img span {
-  text-align: center;
-}
-.imgs .img img {
-  width: 100px;
-  height: 100px;
-  object-fit: contain;
 }
 </style>

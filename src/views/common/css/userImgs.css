@@ -1,0 +1,21 @@
+.imgs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.imgs .img {
+  margin: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.imgs .img span {
+  text-align: center;
+}
+
+.imgs .img img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
