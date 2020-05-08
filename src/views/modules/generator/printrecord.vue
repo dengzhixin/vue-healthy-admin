@@ -90,7 +90,7 @@
                         trigger="hover">
               <div class="popbox">
                 <img style="height: 100px"
-                     :src="url(item.printUrl)+'?x-oss-process=style/h150'" />
+                     :src="item.printUrl+'?x-oss-process=style/h150'" />
               </div>
               <div slot="reference"
                    class="layout-row pointer">
@@ -109,10 +109,10 @@
                        label="打印文件">
         <template slot-scope="scope">
           <template v-if="scope.row.printUrl">
-            <img style="width:100%;max-height:150px;object-fit: contain"
-                 :src="url(scope.row.printUrl) +'?x-oss-process=style/200x'"
-                 alt="">
-            <a :href="url(scope.row.printUrl)"
+            <!-- <img style="width:100%;max-height:150px;object-fit: contain"
+                 :src="scope.row.printUrl+'?x-oss-process=style/200x'"
+                 alt=""> -->
+            <a :href="scope.row.printUrl"
                target="_blank">查看原图</a>
           </template>
           <template v-else>
@@ -184,7 +184,6 @@ import AddOrUpdate from './printrecord-add-or-update'
 
 import loadImages from '../../../utils/loadImages.js'
 import printRecordStatus from './status/printRecordStatus.js'
-import url from '@/utils/url.js'
 import {
   saveAs
 } from 'file-saver'
@@ -211,7 +210,6 @@ export default {
     AddOrUpdate
   },
   computed: {
-    url: url
   },
   activated () {
     if (this.$route.params.status) {
@@ -252,7 +250,7 @@ export default {
       }
       this.percentage = 10
       loadImages(this.dataListSelections.map((record) => {
-        return { url: this.url(record.printUrl), name: record.id }
+        return { url: record.printUrl, name: record.id }
       }), () => {
         this.dataListLoading = false
         setTimeout(() => {
@@ -380,7 +378,7 @@ export default {
     // 下载
     downloadHandle (row) {
       this.downloadPrintRecord([row]).then(() => {
-        saveAs(this.url(row.printUrl), '流水号' + row.id + '.png')
+        saveAs(row.printUrl, '流水号' + row.id + '.png')
       })
     },
     downloadPrintRecord (records) {

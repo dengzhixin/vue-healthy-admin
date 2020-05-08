@@ -2,7 +2,7 @@
   <el-dialog :title="!dataForm.id ? '新增' : '修改'"
              :close-on-click-modal="false"
              :visible.sync="visible">
-    <el-alert title="请勿在同一个店铺将同一个标识关联到不同的制作模板"
+    <el-alert title="请勿在同一个店铺将同一个SKU关联到不同的制作模板"
               :closable="false"
               type="warning">
     </el-alert>
@@ -18,23 +18,61 @@
                       fild="originId"
                       label="origin"
                       value="id"
+                      :disabled="dataForm.id?true:false"
                       @change="originIdChange">
         </remoteSelect>
       </el-form-item>
-      <el-form-item label="标识"
+
+      <el-form-item label="SKU"
                     prop="marker">
-        <el-select v-model="dataForm.marker"
-                   multiple
-                   filterable
-                   allow-create
-                   default-first-option
-                   no-data-text="输入标识按回车即可">
-          <el-option v-for="item in []"
-                     :key="item.value"
-                     :label="item.label"
-                     :value="item.value">
-          </el-option>
-        </el-select>
+        <div class="layout-row">
+
+          <el-select v-model="dataForm.marker"
+                     multiple
+                     filterable
+                     allow-create
+                     default-first-option
+                     no-data-text="输入标识按回车即可">
+            <el-option v-for="item in []"
+                       :key="item.value"
+                       :label="item.label"
+                       :value="item.value">
+            </el-option>
+          </el-select>
+          <el-button v-if="dataForm.originId==1 ||dataForm.originId==3"
+                     @click="openTaobaoGoodsListHandle">打开淘宝店铺商品列表</el-button>
+          <el-dialog append-to-body
+                     title="淘宝出售中的商品"
+                     width="300"
+                     :visible.sync="openTaobaoGoodsList">
+            <div class="taobaoGoods">
+              <div class="layout-row goods"
+                   v-for="item in taobaoGoods"
+                   :key="item.title">
+                <img :src="item.picUrl"
+                     alt="">
+
+                <div class="skus">
+                  <p>{{item.title}}</p>
+                  <el-checkbox-group v-model="dataForm.marker"
+                                     class="cheboxs">
+                    <template v-for="sku in item.skus">
+                      <el-checkbox class="chebox"
+                                   v-if="sku.outerId"
+                                   :key="sku.outerId"
+                                   :label="sku.outerId">{{sku.outerId}}{{sku.propertiesName}}</el-checkbox>
+
+                    </template>
+                  </el-checkbox-group>
+
+                </div>
+
+                <!-- <el-checkbox v-model="checked">item.</el-checkbox> -->
+              </div>
+            </div>
+          </el-dialog>
+
+        </div>
         <!-- <el-input v-model="dataForm.marker"
                   placeholder="胶卷标识"></el-input> -->
       </el-form-item>
@@ -66,6 +104,8 @@ export default {
   },
   data () {
     return {
+      openTaobaoGoodsList: false,
+      taobaoGoods: [],
       filmSelect: {
         options: [],
         loading: false
@@ -82,7 +122,7 @@ export default {
           { required: true, message: '来源地不能为空', trigger: 'blur' }
         ],
         marker: [
-          { required: true, message: '胶卷标识不能为空', trigger: 'blur' }
+          { required: true, message: 'SKU不能为空', trigger: 'blur' }
         ],
         filmId: [
           { required: true, message: '胶卷模板不能为空', trigger: 'blur' }
@@ -91,6 +131,47 @@ export default {
     }
   },
   methods: {
+    openTaobaoGoodsListHandle () {
+      if (this.dataForm.originId) {
+        this.openTaobaoGoodsList = true
+        this.$http({
+          url: this.$http.adornUrl(`/generator/filmoriginmerge/onSellerGoods/${this.dataForm.originId}`),
+          method: 'get'
+        }).then(({ data }) => {
+          if (data && data.code === 0) {
+            this.processGoods(data.goods, data.skus)
+
+            this.taobaoGoods = data.goods
+            // this.skus = data.skus
+          }
+        })
+      } else {
+        this.$message.error('请先选择店铺')
+      }
+    },
+    processGoods (goods, skus) {
+      let getIndex = (numiid) => {
+        for (let i = 0, len = goods.length; i < len; i++) {
+          console.log(numiid, goods[i].NumIid)
+          if (goods[i].numIid === numiid) {
+            return i
+          }
+        }
+      }
+      skus.forEach((sku) => {
+        console.log(sku)
+        let index = getIndex(sku.numIid)
+        sku.propertiesName = sku.propertiesName.replace(sku.properties.split(';')[0] + ':颜色分类', '').split(';')[0]
+
+        if (goods[index].skus != null) {
+          goods[index].skus.push(sku)
+        } else {
+          goods[index].skus = []
+          goods[index].skus.push(sku)
+        }
+      })
+      console.log(goods)
+    },
     filmIdChange (value) {
       this.dataForm.filmId = value
     },
@@ -115,6 +196,7 @@ export default {
       })
     },
     init (id) {
+      this.taobaoGoods = []
       this.dataForm.id = id || 0
       this.visible = true
       this.$nextTick(() => {
@@ -168,5 +250,23 @@ export default {
   },
   mounted () {
   }
+
 }
 </script>
+<style scoped>
+.taobaoGoods {
+  height: 300px;
+  overflow: scroll;
+}
+.goods img {
+  width: 60px;
+  height: 60px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+.goods {
+}
+.goods .skus {
+  width: 100%;
+}
+</style>

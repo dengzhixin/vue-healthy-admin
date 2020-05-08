@@ -34,20 +34,21 @@
                        align="center"
                        label="id">
       </el-table-column>
-      <el-table-column prop="originName"
-                       header-align="center"
-                       align="center"
-                       label="店铺">
-      </el-table-column>
+
       <el-table-column prop="marker"
                        header-align="center"
                        align="center"
-                       label="标识">
+                       label="SKU">
       </el-table-column>
       <el-table-column prop="filmName"
                        header-align="center"
                        align="center"
                        label="关联制作模板">
+      </el-table-column>
+      <el-table-column prop="originName"
+                       header-align="center"
+                       align="center"
+                       label="店铺">
       </el-table-column>
       <el-table-column fixed="right"
                        header-align="center"

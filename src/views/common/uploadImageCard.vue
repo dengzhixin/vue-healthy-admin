@@ -10,7 +10,7 @@
                style="text-align: center;">
       <template v-if="type=='drag'">
         <div class="box">
-          <img class="preImage"
+          <img class="imgBackground preImage"
                v-if="preImage"
                :src="preImage" />
           <i v-else
@@ -96,6 +96,7 @@ export default {
 }
 </script>
 <style scoped>
+@import url("./css/imgBackground");
 .box {
   display: flex;
   justify-content: center;

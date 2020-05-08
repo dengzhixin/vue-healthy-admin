@@ -58,9 +58,17 @@
                       prop="remarks">
           <el-button style="display:inline-block"
                      @click="addFilm">添加定制品</el-button>
+
+          <el-button type="primary"
+                     class="btn-addFiles">
+            <input type="file"
+                   webkitdirectory
+                   @change="addFileDir"
+                   accept="image/*"
+                   multiple> 上传定制包</el-button>
           <el-upload style="display:inline-block"
                      action="#"
-                     accept="application/zip"
+                     webkitdirectory
                      :on-change="uploadImgsZip"
                      :multiple="true"
                      :show-file-list="false"
@@ -203,9 +211,57 @@ export default {
     }
   },
   mounted () {
+    let formData = new FormData()
+    formData.append('a', '123')
+    console.log(formData)
     this.url = this.$http.adornUrl(`/sys/oss/uploadZip?token=${this.$cookie.get('token')}`)
   },
   methods: {
+    addFileDir (e) {
+      let dirs = {}
+      let files = Array.from(e.target.files)
+      console.log(files)
+      files.forEach((file) => {
+        if (file.type.startsWith('image')) {
+          let d = file.webkitRelativePath.substring(0, file.webkitRelativePath.lastIndexOf('/'))
+          if (!dirs[d]) {
+            dirs[d] = []
+          }
+          dirs[d].push(file)
+        }
+      })
+      Object.keys(dirs).forEach((dir) => {
+        dirs[dir] = dirs[dir].sort((f1, f2) => {
+          let n1, n2
+          n1 = parseInt(f1.name.split('.')[0])
+          n2 = parseInt(f2.name.split('.')[0])
+          if (isNaN(n1)) {
+            n1 = 0
+          }
+          if (isNaN(n2)) {
+            n2 = 0
+          }
+
+          return n1 - n2
+        })
+      })
+      let formData = new FormData()
+      formData.append('files', '123')
+      console.log(formData)
+
+      // Object.keys(dirs).forEach((dir) => {
+      //   let formData = new FormData()
+      //   formData.append('files', '123')
+
+      //   // let arr = Array.from(dirs[dir])
+      //   // arr.forEach((f) => {
+      //   //   console.log(f)
+      //   //   formData.append('files', f.name)
+      //   //   console.log(formData)
+      //   // })
+      //   console.log(formData)
+      // })
+    },
     getNewImg (response) {
       console.log(response)
       this.orderDetailList[response.index].imgs.push({
@@ -401,7 +457,20 @@ export default {
   }
 }
 </script>
-<style scoped>
+<style lang="scss" scoped>
+.btn-addFiles {
+  position: relative;
+}
+
+.btn-addFiles input {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0;
+
+  position: absolute;
+  cursor: pointer;
+}
 .imgs {
   display: flex;
   flex-wrap: wrap;

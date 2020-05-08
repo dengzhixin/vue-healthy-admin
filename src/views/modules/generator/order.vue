@@ -161,7 +161,7 @@
                   <template v-if="d.printUrl">
                     <br />
                     <el-link icon="el-icon-picture"
-                             :href="url(d.printUrl) +'?x-oss-process=style/h150'"
+                             :href="d.printUrl +'?x-oss-process=style/h150'"
                              target="_bank">查看效果图</el-link>
                   </template>
                   <template>
@@ -199,12 +199,6 @@
           </a>
 
         </template>
-      </el-table-column>
-      <el-table-column prop="code"
-                       header-align="center"
-                       align="center"
-                       label="系统编号"
-                       width="200">
       </el-table-column>
 
       <!-- <el-table-column prop="status"
@@ -271,6 +265,12 @@
                        label="订单类型">
         <template slot-scope="scope">{{scope.row.type===0?'平台':'人工'}}</template>
       </el-table-column>
+      <el-table-column prop="code"
+                       header-align="center"
+                       align="center"
+                       label="系统编号"
+                       width="200">
+      </el-table-column>
       <!-- <el-table-column fixed="right"
                        header-align="center"
                        align="center"
@@ -316,7 +316,6 @@ import AddOrUpdateOrderDetail from './orderdetail-add-or-update'
 import OrderImport from './order-import.vue'
 import orderDetailStatus from './orderDetailStatus.js'
 import remoteSelect from '../../common/remoteSelect'
-import url from '@/utils/url.js'
 
 export default {
   name: 'order',
@@ -383,7 +382,6 @@ export default {
     this.getDataList()
   },
   computed: {
-    url: url,
     stepActive (ostatus, status) {
       return function (ostatus, status) {
         if (ostatus === 1) {

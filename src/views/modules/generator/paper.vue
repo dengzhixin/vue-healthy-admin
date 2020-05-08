@@ -55,9 +55,10 @@
       <el-table-column prop="bgUrl"
                        header-align="center"
                        align="center"
-                       label="打印纸底板">
+                       label="拼版文件底板">
         <template slot-scope="scope">
-          <img style="width:100%;max-height:150px;object-fit: contain"
+          <img class="imgBackground"
+               style="width:100%;max-height:150px;object-fit: contain"
                :src="scope.row.bgUrl +'?x-oss-process=style/200x'"
                :alt="scope.row.name">
         </template>
@@ -92,6 +93,10 @@
                        width="150"
                        label="操作">
         <template slot-scope="scope">
+          <el-button type="text"
+                     size="small"
+                     @click="copyHandle(scope.row)">复制新建</el-button>
+
           <el-button type="text"
                      size="small"
                      @click="updateStatusHandle(scope.row)">{{scope.row.status==0?'启用':'禁用'}}</el-button>
@@ -151,6 +156,12 @@ export default {
     this.getDataList()
   },
   methods: {
+    copyHandle (row) {
+      this.addOrUpdateVisible = true
+      this.$nextTick(() => {
+        this.$refs.addOrUpdate.init(row.id, true)
+      })
+    },
     updateStatusHandle (row) {
       this.$http({
         url: this.$http.adornUrl(`/generator/paper/update`),
@@ -251,3 +262,6 @@ export default {
   }
 }
 </script>
+<style scoped>
+@import url("../../common/css/imgBackground.css");
+</style>

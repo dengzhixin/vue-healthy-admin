@@ -48,6 +48,7 @@ input[type="number"] {
   cursor: pointer;
   font-size: 20pt;
 }
+
 @font-face {
   font-family: "iconfont"; /* project id 1777954 */
   src: url("//at.alicdn.com/t/font_1777954_7u5c7czosvg.eot");
