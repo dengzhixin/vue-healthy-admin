@@ -36,7 +36,7 @@
           <div class="img"
                v-for="(img,imgIndex) in dataForm.imgs"
                :key="img.url">
-            <img :src="img.url +'?x-oss-process=style/200x'"
+            <img :src="imgUrl(img.url,200)"
                  :style="'transform:rotate('+90*img.angle+'deg)'"
                  alt="">
 
@@ -86,7 +86,7 @@ import remoteSelect from '../../common/remoteSelect'
 import vuedraggable from 'vuedraggable'
 import uploadImageCard from '../../common/uploadImageCard'
 import uploadImgsZip from '@/utils/uploadImgsZip.js'
-
+import imgUrl from '@/utils/imgUrl.js'
 export default {
   components: {
     remoteSelect, vuedraggable, uploadImageCard
@@ -136,6 +136,9 @@ export default {
   },
   mounted () {
     this.url = this.$http.adornUrl(`/sys/oss/uploadZip?token=${this.$cookie.get('token')}`)
+  },
+  computed: {
+    imgUrl: imgUrl
   },
   methods: {
     uploadImgsZip (zip) {

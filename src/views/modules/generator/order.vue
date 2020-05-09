@@ -202,7 +202,9 @@
                        align="center"
                        width="100"
                        label="买家">
-        <template slot-scope="scope">
+
+        <template slot-scope="scope"
+                  v-if="scope.row.buyerNick">
           {{scope.row.buyerNick}}
 
           <a target="_blank"
@@ -275,7 +277,7 @@
                        header-align="center"
                        align="center"
                        label="订单类型">
-        <template slot-scope="scope">{{scope.row.type===0?'平台':'人工'}}</template>
+        <template slot-scope="scope">{{orderType[scope.row.type]}}</template>
       </el-table-column>
       <el-table-column prop="code"
                        header-align="center"
@@ -333,6 +335,7 @@ export default {
   name: 'order',
   data () {
     return {
+      orderType: ['平台', '人工创建', '文件夹导入'],
       orderStatus: {
         '1': { text: '待付款', type: 'warning' },
         '2': { text: '未初始化', type: 'warning' },

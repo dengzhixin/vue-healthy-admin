@@ -25,40 +25,6 @@
       </el-form-item>
       <el-collapse v-model="activeImportCol"
                    accordion>
-        <el-collapse-item title="excel表格导入订单号"
-                          name="excel">
-          <el-alert title='可以识别表格中”订单编号“、"订单号“所在的列为订单号'
-                    :closable="false"
-                    type="warning">
-          </el-alert>
-          <br />
-          <el-upload style="display:inline-block"
-                     ref="upload"
-                     action="#"
-                     accept=".xlsx"
-                     :multiple="false"
-                     :show-file-list="false"
-                     :on-change="importExcelOrders"
-                     :auto-upload="false">
-            <el-button slot="trigger">选择订单excel表格</el-button>
-
-          </el-upload>
-
-        </el-collapse-item>
-        <el-collapse-item title="手动输入订单号"
-                          name="text">
-          <el-form-item label="订单号">
-            <el-input type="textarea"
-                      :autosize="{ minRows: 4}"
-                      clearable
-                      placeholder="请输入订单号，换行可以输入多个"
-                      @input="inputOrderExcodeChange"
-                      v-model="inputOrderExcode">
-            </el-input>
-
-          </el-form-item>
-
-        </el-collapse-item>
         <el-collapse-item title="文件夹导入订单和图片"
                           name="dirs"
                           v-if="dataForm.opType=='导入'">
@@ -138,6 +104,40 @@
           </el-collapse>
 
         </el-collapse-item>
+        <el-collapse-item title="excel表格导入订单号"
+                          name="excel">
+          <el-alert title='可以识别表格中”订单编号“、"订单号“所在的列为订单号'
+                    :closable="false"
+                    type="warning">
+          </el-alert>
+          <br />
+          <el-upload style="display:inline-block"
+                     ref="upload"
+                     action="#"
+                     accept=".xlsx"
+                     :multiple="false"
+                     :show-file-list="false"
+                     :on-change="importExcelOrders"
+                     :auto-upload="false">
+            <el-button slot="trigger">选择订单excel表格</el-button>
+
+          </el-upload>
+
+        </el-collapse-item>
+        <el-collapse-item title="手动输入订单号"
+                          name="text">
+          <el-form-item label="订单号">
+            <el-input type="textarea"
+                      :autosize="{ minRows: 4}"
+                      clearable
+                      placeholder="请输入订单号，换行可以输入多个"
+                      @input="inputOrderExcodeChange"
+                      v-model="inputOrderExcode">
+            </el-input>
+
+          </el-form-item>
+
+        </el-collapse-item>
 
       </el-collapse>
       <br />
@@ -184,7 +184,6 @@
 import remoteSelect from '../../common/remoteSelect'
 import XLSX from 'xlsx'
 import vuedraggable from 'vuedraggable'
-
 export default {
   name: 'order-import',
   components: {
@@ -277,7 +276,10 @@ export default {
         let split = dir.split('/')
         let tOrder = {
           exCode: split[split.length - 1],
-          list: []
+          list: [],
+          status: 3,
+          type: 2
+
         }
         let arr = Array.from(dirs[dir])
         arr.forEach((f) => {
@@ -295,7 +297,12 @@ export default {
               angle: 0
             }
           })
-          tOrder.list.push({ imgs: imgs, number: 1 })
+          tOrder.list.push({
+            imgs: imgs,
+            number: 1,
+            filmId: undefined,
+            status: 2
+          })
           orderList.push(tOrder)
           num--
           console.log(num)
@@ -403,7 +410,7 @@ export default {
         this.$message('请先选择店铺')
         return
       }
-      if (this.orders == null || this.orders.length === 0 || this.ordersWithDetail.length === 0) {
+      if (this.orders == null || this.orders.length === 0) {
         this.$message('没有可以导入的订单')
         return
       }
@@ -431,10 +438,18 @@ export default {
       this.orders.forEach((o) => {
         o.originId = this.dataForm.originId
       })
+
+      let copy = JSON.stringify(this.orders)
+      copy = JSON.parse(copy)
+      copy.forEach((o) =>
+        o.list.forEach((od) => {
+          od.imgs = JSON.stringify(od.imgs)
+        })
+      )
       this.$http({
         url: this.$http.adornUrl('/generator/order/import'),
         method: 'POST',
-        data: this.orders,
+        data: copy,
         params: this.$http.adornParams({ opType: this.dataForm.opType, sellerMsg: this.dataForm.sellerMsg })
       }).then(({ data }) => {
         this.$message(data.msg)

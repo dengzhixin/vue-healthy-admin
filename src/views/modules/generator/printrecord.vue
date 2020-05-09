@@ -1,5 +1,6 @@
   <template class="mod-config">
   <div>
+
     <template v-if="percentage>0 && percentage<100">
       <el-progress :text-inside="
               true"
@@ -48,7 +49,17 @@
                    @click="deleteHandle()"
                    :disabled="dataListSelections.length <= 0">批量删除</el-button>
       </el-form-item>
+
+      <el-form-item label="打印机">
+        <el-select v-model="activePrinter">
+          <el-option v-for="p in printer"
+                     :value="p"
+                     :key="p"></el-option>
+        </el-select>
+        <div ref="printerMsg"></div>
+      </el-form-item>
     </el-form>
+
     <el-table :data="dataList"
               border
               v-loading="dataListLoading"
@@ -154,6 +165,10 @@
                      type="text"
                      size="small"
                      @click="downloadHandle(scope.row)">下载</el-button>
+          <el-button v-if="scope.row.printUrl"
+                     type="text"
+                     size="small"
+                     @click="printHandle(scope.row)">打印</el-button>
           <el-button v-if="scope.row.status==0"
                      type="text"
                      size="small"
@@ -187,9 +202,13 @@ import printRecordStatus from './status/printRecordStatus.js'
 import {
   saveAs
 } from 'file-saver'
+import { getLodop } from '@/utils/LodopFuncs.js'
+var LODOP
 export default {
   data () {
     return {
+      activePrinter: undefined,
+      printer: [],
       percentage: 0,
       printRecordStatus: printRecordStatus,
       dataForm: {
@@ -211,6 +230,15 @@ export default {
   },
   computed: {
   },
+  mounted () {
+    setTimeout(() => {
+      LODOP = getLodop(undefined, undefined, this.$refs.printerMsg)
+      let iPrinterCount = LODOP.GET_PRINTER_COUNT()
+      for (var i = 0; i < iPrinterCount; i++) {
+        this.printer.push(LODOP.GET_PRINTER_NAME(i))
+      };
+    }, 2000)
+  },
   activated () {
     if (this.$route.params.status) {
       switch (this.$route.params.status) {
@@ -225,6 +253,12 @@ export default {
     this.getDataList()
   },
   methods: {
+    printHandle (row) {
+      // 调用getLodop获取LODOP对象
+      LODOP.PRINT_INIT('')
+      LODOP.ADD_PRINT_TEXT(50, 231, 260, 39, '打印内容')
+      LODOP.PREVIEW()
+    },
     copyExcode (excode) {
       if (document.execCommand('copy')) {
         const input = document.createElement('input')
