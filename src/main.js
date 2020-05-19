@@ -12,13 +12,10 @@ import {
   isAuth
 } from '@/utils'
 import cloneDeep from 'lodash/cloneDeep'
-import dataV from '../node_modules/@jiaminghi/data-view'
 import dateformatter from '@/utils/DateFormatter.js'
 dateformatter()
 Vue.use(VueCookie)
 Vue.config.productionTip = false
-
-Vue.use(dataV)
 
 // 非生产环境, 适配mockjs模拟数据                 // api: https://github.com/nuysoft/Mock
 if (process.env.NODE_ENV !== 'production') {

@@ -5,9 +5,9 @@
       <h1 class="site-navbar__brand"
           @click="$router.push({ name: 'home' })">
         <a class="site-navbar__brand-lg"
-           href="javascript:;">私定定制品生产系统</a>
+           href="javascript:;">大学生健康信息管理系统</a>
         <a class="site-navbar__brand-mini"
-           href="javascript:;">私定</a>
+           href="javascript:;">大学生</a>
       </h1>
     </div>
     <div class="site-navbar__body clearfix">
