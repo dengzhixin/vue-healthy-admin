@@ -37,6 +37,13 @@ const globalRoutes = [{
     meta: {
       title: '登录'
     }
+  }, {
+    path: '/userform',
+    component: _import('common/userform'),
+    name: 'userform',
+    meta: {
+      title: '用户界面'
+    }
   }
 ]
 

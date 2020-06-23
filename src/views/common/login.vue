@@ -7,8 +7,18 @@
           <!-- <p class="brand-info__intro">renren-fast-vue基于vue、element-ui构建开发，实现renren-fast后台管理前端功能，提供一套更优的前端解决方案。</p> -->
         </div>
         <div class="login-main">
-          <h3 class="login-title">管理员登录</h3>
-          <el-form :model="dataForm"
+          <h3 class="login-title">登录</h3>
+          <p>
+            身份：
+            <el-radio-group v-model="isStu">
+              <el-radio :label="true">学生</el-radio>
+              <el-radio :label="false">老师</el-radio>
+              <br />
+            </el-radio-group>
+          </p>
+
+          <el-form v-show="!isStu"
+                   :model="dataForm"
                    :rules="dataRule"
                    ref="dataForm"
                    @keyup.enter.native="dataFormSubmit()"
@@ -43,6 +53,22 @@
                          @click="dataFormSubmit()">登录</el-button>
             </el-form-item>
           </el-form>
+          <div v-show="isStu">
+            <el-form>
+              <el-form-item>
+                <el-input v-model="userId"
+                          placeholder="学号"></el-input>
+              </el-form-item>
+              <el-form-item>
+                <el-input v-model="username"
+                          placeholder="姓名"></el-input>
+              </el-form-item>
+            </el-form>
+            <el-button class="login-btn-submit"
+                       type="primary"
+                       @click="loginForUser">登录</el-button>
+          </div>
+
         </div>
       </div>
     </div>
@@ -54,6 +80,9 @@ import { getUUID } from '@/utils'
 export default {
   data () {
     return {
+      userId: '',
+      username: '',
+      isStu: false,
       dataForm: {
         userName: '',
         password: '',
@@ -78,6 +107,17 @@ export default {
     this.getCaptcha()
   },
   methods: {
+    loginForUser () {
+      if (this.userId) {
+        this.$router.push({
+          name: 'userform',
+          params: {
+            id: this.userId,
+            username: this.username
+          }
+        })
+      }
+    },
     // 提交表单
     dataFormSubmit () {
       this.$refs['dataForm'].validate((valid) => {
